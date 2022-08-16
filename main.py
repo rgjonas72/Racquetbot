@@ -71,23 +71,23 @@ async def input_win(winner, loser, season):
 
 
 async def check_player_status(id, season):
-    c = cursor.execute('select discord_id from %s where id = %s', (season, id,))
+    c = cursor.execute('select discord_id from ? where id = ?', (season, id,))
     if c.fetchone() is None:
         await add_player(id, season)
 
 
 async def add_player(id, season):
     name = await get_player_name(id)
-    c = cursor.execute('select * from HighTierPlayers where id=%s', (id,))
+    c = cursor.execute('select * from HighTierPlayers where id=?', (id,))
     elo = 500
     if c.fetchone() is not None:
         elo = 1200
-    cursor.execute('insert into %s values (%s, %s, %s, 0, 0)', (season, name, id, elo))
+    cursor.execute('insert into ? values (?, ?, ?, 0, 0)', (season, name, id, elo))
 
 
 async def add_season(season):
-    cursor.execute('insert into seasons (season_name, primary_ranked, primary_unranked) values (%s, 0, 0)', (season,))
-    cursor.execute('create table %s (player_name varchar(50), discord_id int, elo int, wins int, losses int)',
+    cursor.execute('insert into seasons (season_name, primary_ranked, primary_unranked) values (?, 0, 0)', (season,))
+    cursor.execute('create table ? (player_name varchar(50), discord_id int, elo int, wins int, losses int)',
                    (season,))
 
 
@@ -95,15 +95,15 @@ async def set_primary_season_ranked(season):
     # End the current season
     cursor.execute('update seasons set primary_ranked = 0, end_date = now() where primary_ranked = 1')
     # Set primary ranked season to specified season
-    cursor.execute('update seasons set primary_ranked = 1, start_date = now() where season_name = %s', (season,))
+    cursor.execute('update seasons set primary_ranked = 1, start_date = now() where season_name = ?', (season,))
 
 
 async def add_high_tier_player(id):
-    c = cursor.execute('select * from HighTierPlayers where discord_id=%s', (id,))
+    c = cursor.execute('select * from HighTierPlayers where discord_id=?', (id,))
     if c.fetchone is not None:
         return 'Already a high tier player.'
     name = await get_player_name(id)
-    cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
+    cursor.execute('insert into HighTierPlayers values (?, ?)', (name, id,))
     ### Give them +700 elo here in current season?
     return 'Player added'
 
@@ -186,10 +186,7 @@ async def on_message(message):
         await message.channel.send(f'{season} set as current ranked season.')
 
 
-    # db['season'] = 'Fall 2022 Racquetball League'
-    # db['HighTierPlayers'] = ['196404822063316992', '231554084782604288', '562366102013870092', '164281046039265281']
-
-    # keep_alive()
-    # client.run(os.environ['TOKEN'])
-    TOKEN = 'MTAwODkzOTQ0NzQzOTYwOTkwNw.GrUoL4.0a_R2ncKb2r6D4XXtqfvIfPVZoF7cbBgaVXufQ'
-    client.run(TOKEN)
+# keep_alive()
+# client.run(os.environ['TOKEN'])
+TOKEN = open("/repo/discord_token.txt", "r").read()
+client.run(TOKEN)
