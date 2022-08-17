@@ -18,6 +18,7 @@ mydb = mysql.connector.connect(
     database = "racquetbot"
 )
 
+mydb.autocommit(True)
 cursor = mydb.cursor()
 
 
@@ -115,7 +116,7 @@ async def get_player_name(id):
 
 
 async def get_current_ranked_season():
-    cursor.execute('select season_name from season where primary_ranked == 1')
+    cursor.execute('select season_name from season where primary_ranked = 1')
     season = cursor.fetchone()
     print(season)
     return season
