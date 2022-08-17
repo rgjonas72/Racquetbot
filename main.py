@@ -130,10 +130,10 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     winner_expected_outcome = winner_elo / (winner_elo + loser_elo)
     loser_expected_outcome = loser_elo / (winner_elo + loser_elo)
     # Calculate post game deltas and elos
-    winner_delta = winner_k * (1 - winner_expected_outcome)
+    winner_delta = math.ceil(winner_k * (1 - winner_expected_outcome))
     winner_new_elo = winner_elo + winner_delta
 
-    loser_delta = loser_k * (0 - loser_expected_outcome)
+    loser_delta = math.ceil(loser_k * (0 - loser_expected_outcome))
     loser_new_elo = loser_elo + loser_delta
 
     # Insert game into database
@@ -226,8 +226,7 @@ async def get_stats2(discord_id):
     print(df.head())
     name = await get_player_name(discord_id)
     embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
-    embed.add_field(name="Test", value="```Test```", inline=True)
-    embed.add_field(name="Test 2", value="```Test 2```", inline=True)
+    embed.add_field(name="```Test```", value="```Test```", inline=True)
     return embed
 
 
