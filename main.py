@@ -23,48 +23,87 @@ cursor = mydb.cursor()
 
 
 '''
+#K value gradation based on elo
+k_valuea = 50
+k_valueb = 32
+k_valuec = 24
+k_valued = 16
+
+#elo thresholds 
+k_thresholda = 2400
+k_thresholdb = 2100
+
+#number of games to get noob K value
+noob_game_count = 5
 
 p1_k = 32
 p2_k = 50
 
-#transformed values, used for calculating probability 
-p1_trating = 10 ** (p1_rating/400)
-p2_trating = 10 ** (p2_rating/400)
+#number of games played to calculate variable K value
+#test numbers
+p1_ngames = 10
+p2_ngames = 2
 
-#win = 1, loss = 0
-p1_score = 1
-p2_score = 0
+#check what elo range player 1 is in
+if p1_rating >= k_thresholda:
+  p1_k = k_valued
 
-print(f"P1 rating = {p1_rating}, P2 rating = {p2_rating} \n")
+if p1_rating >= k_thresholdb and p1_rating < k_thresholda:
+  p1_k = k_valuec
 
-#probabilities
-p1_expected_outcome = p1_trating / (p1_trating + p2_trating)
-p2_expected_outcome = p2_trating / (p1_trating + p2_trating)
+if p1_rating < k_thresholdb:
+  p1_k = k_valueb
+  
+#check what elo range player 2 is in
+if p2_rating >= k_thresholda:
+  p2_k = k_valued
 
-print(f"P1 has a {p1_expected_outcome * 100:.3f}% chance of winning")
-print(f"P1 has a {p2_expected_outcome * 100:.3f}% chance of winning\n\n")
+if p2_rating >= k_thresholdb and p1_rating < k_thresholda:
+  p2_k = k_valuec
 
+if p1_rating < k_thresholdb:
+  p2_k = k_valueb
 
-p1_delta = p1_k * (p1_score - p1_expected_outcome)
-p1_new_rating = str(p1_rating + p1_delta )
+#if the player has less than x number of games, make them earn more 
+if p1_ngames <= noob_game_count:
+  p1_k = k_valuea
 
-p2_delta = p2_k * (p2_score - p2_expected_outcome)
-p2_new_rating = str(p2_rating + p2_delta)
-
-print("If P1 wins: \n")
-print(f"P1 new elo: {float(p1_new_rating):.3f}")
-print(f"P2 new elo: {float(p2_new_rating):.3f}\n")
-
-p1_score = 0
-p2_score = 1
-
-p1_new_rating = str(p1_rating + p1_k * (p1_score - p1_expected_outcome))
-p2_new_rating = str(p2_rating + p2_k * (p2_score - p2_expected_outcome))
-
-print("If P2 wins: \n")
-print(f"P1 new elo: {float(p1_new_rating):.3f}")
-print(f"P2 new elo: {float(p2_new_rating):.3f}")
+if p2_ngames <= noob_game_count:
+  p2_k = k_valuea
 '''
+
+async def get_k_value(elo, ngames):
+    # K value gradation based on elo
+    k_valuea, k_valueb, k_valuec, k_valued = [50, 32, 24, 16]
+
+    # elo thresholds
+    k_thresholda, k_thresholdb = [2400, 2100]
+
+    # number of games to get noob K value
+    noob_game_count = 5
+
+    k = 32
+
+    # number of games played to calculate variable K value
+    # test numbers
+    noob_games = 10
+
+    # check what elo range player 1 is in
+    if elo >= k_thresholda:
+        k = k_valued
+
+    if k_thresholdb <= elo < k_thresholda:
+        k = k_valuec
+
+    if elo < k_thresholdb:
+        k = k_valueb
+
+    # If the player has less than x number of noob game count, make them earn more
+    if ngames <= noob_games:
+        k = k_valuea
+
+    return k
+
 
 # Function to calculate Elo rating
 # K is a constant.
@@ -82,8 +121,9 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     cursor.execute('select count(*) from game_history where discord_id=%s and season=%s', (loser, season,))
     loser_games = cursor.fetchone()[0]
     # Set k values ### Will be based off # of games
-    winner_k = 32
-    loser_k = 32
+    winner_k = await get_k_value(winner_elo, winner_games)
+    loser_k = await get_k_value(loser_elo, loser_games)
+
     # Calculate probability
     winner_expected_outcome = winner_elo / (winner_elo + loser_elo)
     loser_expected_outcome = loser_elo / (winner_elo + loser_elo)
@@ -111,11 +151,11 @@ client = discord.Client(intents=intents)
 
 # Parameters: ID of winner and loser, and string of queue type
 # Queue type either 'Ranked' or 'Friendly'
-async def input_win(winner, loser, season):
+async def input_win(winner, loser, season, winner_score, loser_score):
     await check_player_status(winner, season);
     await check_player_status(loser, season);
 
-    winner_elo, loser_elo = await EloRating(winner, loser, season)
+    winner_elo, loser_elo = await EloRating(winner, loser, season, winner_score, loser_score)
     # Leaderboard update function here probably
 
 
@@ -199,14 +239,20 @@ async def on_message(message):
         print(message.author.id)
 
     if message.content.lower().startswith('.ranked'):
+        # Make it so user can't @ themselves twice...
         mentions = message.mentions
         if len(mentions) != 2:
             await message.channel.send("Must mention two players.")
             return
+        score = msg.split('>')[-1].strip()
+        winner_score, loser_score = score.split('-')
+        if winner_score < loser_score:
+            await message.channel.send("Winner must have a higher score.")
+            return
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season()
-        await input_win(str(winner.id), str(loser.id), current_season)
+        await input_win(str(winner.id), str(loser.id), current_season, winner_score, loser_score)
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
