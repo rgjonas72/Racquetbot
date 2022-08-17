@@ -18,7 +18,7 @@ mydb = mysql.connector.connect(
     database = "racquetbot"
 )
 
-mydb.autocommit(True)
+mydb.autocommit = True
 cursor = mydb.cursor()
 
 
