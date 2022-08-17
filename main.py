@@ -237,9 +237,9 @@ async def get_stats2(discord_id):
     data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
-    cols, data = df.to_string(index=False).split('\n', 1)
+    cols, data = df.to_string(index=False, justify="left").split('\n', 1)
     full_msg = f"```{cols}```\n```{data}```"
-    embed.add_field(name=f"{name}'s stats", value=f"```{cols}``` ```{data}```", inline=False)
+    embed.add_field(name=f"{name}'s stats", value=f"```{cols}```\n```{data}```", inline=False)
     #embed.add_field(name="\u200b", value=f"```{data}```", inline=False)
     #embed.add_field(name="\u200b", value=full_msg, inline=False)
     print(embed.to_dict())
@@ -250,8 +250,8 @@ async def get_ladder(season):
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False).split('\n', 1)
-    df.style.set_properties(**{'text-align': 'left'})
+    cols, data = df.to_string(index=False, justify='left').split('\n', 1)
+
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}```\n```{data}```", inline=False)
     return embed
 
