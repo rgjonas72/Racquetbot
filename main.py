@@ -109,8 +109,9 @@ async def add_high_tier_player(id):
 
 
 async def get_player_name(id):
-    n = await client.fetch_user(str(id))
-    return n.display_name, n.discriminator
+    n = await client.fetch_user(str(id)) 
+    # , n.discriminator
+    return n.display_name
 
 
 async def get_current_ranked_season():
