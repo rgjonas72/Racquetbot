@@ -247,6 +247,7 @@ async def get_stats2(discord_id):
     embed.add_field(name="\u200b", value=f"```{cols}```", inline=False)
     embed.add_field(name="\u200b", value=f"```{data}```", inline=False)
     #embed.add_field(name="\u200b", value=full_msg, inline=False)
+    print(embed.to_dict())
     return embed
 
 
