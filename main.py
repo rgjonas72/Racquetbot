@@ -118,8 +118,7 @@ async def get_player_name(id):
 async def get_current_ranked_season():
     cursor.execute('select season_name from seasons where primary_ranked = 1')
     season = cursor.fetchone()
-    print(season)
-    return season
+    return season[0]
 
 
 @client.event
