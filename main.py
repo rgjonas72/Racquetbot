@@ -222,7 +222,7 @@ async def get_stats(discord_id):
 
 async def get_stats2(discord_id):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f'select * from `{season}` where discord_id={discord_id}', mydb)
+    df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
     print(df.head())
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     name = await get_player_name(discord_id)
@@ -237,7 +237,7 @@ async def get_stats2(discord_id):
 
     header = t2a(body=df.columns.tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{header}\n```")
-    
+
 
     data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
