@@ -142,6 +142,8 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
+    # Probably return a lot more later
+    return winner_new_elo, loser_new_elo
 
 
 # Initiate discord client
@@ -157,6 +159,7 @@ async def input_win(winner, loser, season, winner_score, loser_score):
 
     winner_elo, loser_elo = await EloRating(winner, loser, season, winner_score, loser_score)
     # Leaderboard update function here probably
+    return winner_elo, loser_elo
 
 
 async def check_player_status(id, season):
@@ -252,7 +255,8 @@ async def on_message(message):
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season()
-        await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
+        winner_elo, loser_elo = await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
+        await message.channel.send('Winner new elo:', str(winner_elo), 'Loser new elo:', str(loser_elo))
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
