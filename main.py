@@ -89,7 +89,7 @@ async def add_player(id, season):
 async def add_season(season):
     print(season)
     cursor.execute('insert into seasons (season_name, primary_ranked, primary_unranked) values (%s, 0, 0)', (season,))
-    cursor.execute('create table `' + season + '` (player_name varchar(50), discord_id int, elo int, wins int, losses int)')
+    cursor.execute('create table `' + season + '` (player_name varchar(50), discord_id varchar(18), elo int, wins int, losses int)')
 
 
 async def set_primary_season_ranked(season):
