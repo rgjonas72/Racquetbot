@@ -152,7 +152,7 @@ async def on_message(message):
             return
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
-        current_season = await get_current_ranked_season
+        current_season = await get_current_ranked_season()
         await input_win(str(winner.id), str(loser.id), current_season)
 
     if message.content.lower().startswith('.stats'):
