@@ -168,9 +168,11 @@ async def get_current_ranked_season():
     return season[0]
 
 
-async def get_stats(discord_id, season=await get_current_ranked_season()):
-    print(season)
-
+async def get_stats(discord_id):
+    season = await get_current_ranked_season()
+    cursor.execute('select * from `' + season + '` where discord_id=%s', (discord_id,))
+    disc_id, disc_name, elo, wins, losses = cursor.fetchone()
+    return disc_id, disc_name, elo, wins, losses
 
 @client.event
 async def on_ready():
@@ -214,7 +216,8 @@ async def on_message(message):
             id = str(mentions[0].id)
         else:
             id = str(message.author.id)
-        await get_stats(id)
+        disc_id, disc_name, elo, wins, losses = await get_stats(id)
+        await message.channel.send("Elo:" + str(elo) + '\nWins:' + str(wins) + '\nLosses:' + str(losses))
 
         ### Get stats function here
 
