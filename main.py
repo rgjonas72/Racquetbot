@@ -22,38 +22,86 @@ mydb.autocommit = True
 cursor = mydb.cursor()
 
 
-async def Probability(rating1, rating2):
-    return 1.0 * 1.0 / (1 + 1.0 * math.pow(10, 1.0 * (rating1 - rating2) / 400))
+'''
 
+p1_k = 32
+p2_k = 50
+
+#transformed values, used for calculating probability 
+p1_trating = 10 ** (p1_rating/400)
+p2_trating = 10 ** (p2_rating/400)
+
+#win = 1, loss = 0
+p1_score = 1
+p2_score = 0
+
+print(f"P1 rating = {p1_rating}, P2 rating = {p2_rating} \n")
+
+#probabilities
+p1_expected_outcome = p1_trating / (p1_trating + p2_trating)
+p2_expected_outcome = p2_trating / (p1_trating + p2_trating)
+
+print(f"P1 has a {p1_expected_outcome * 100:.3f}% chance of winning")
+print(f"P1 has a {p2_expected_outcome * 100:.3f}% chance of winning\n\n")
+
+
+p1_delta = p1_k * (p1_score - p1_expected_outcome)
+p1_new_rating = str(p1_rating + p1_delta )
+
+p2_delta = p2_k * (p2_score - p2_expected_outcome)
+p2_new_rating = str(p2_rating + p2_delta)
+
+print("If P1 wins: \n")
+print(f"P1 new elo: {float(p1_new_rating):.3f}")
+print(f"P2 new elo: {float(p2_new_rating):.3f}\n")
+
+p1_score = 0
+p2_score = 1
+
+p1_new_rating = str(p1_rating + p1_k * (p1_score - p1_expected_outcome))
+p2_new_rating = str(p2_rating + p2_k * (p2_score - p2_expected_outcome))
+
+print("If P2 wins: \n")
+print(f"P1 new elo: {float(p1_new_rating):.3f}")
+print(f"P2 new elo: {float(p2_new_rating):.3f}")
+'''
 
 # Function to calculate Elo rating
 # K is a constant.
 # d determines whether
 # Player A wins or Player B.
-async def EloRating(winner, loser, queue, K=5):
-    winner_db_string = await get_db_string(winner, queue)
-    loser_db_string = await get_db_string(loser, queue)
-    # Ra for winner, Rb for loser
-    ###Ra = db[winner_db_string][1]
-    ###Rb = db[loser_db_string][1]
+async def EloRating(winner, loser, season, winner_score, loser_score):
+    # Get elo for both players
+    cursor.execute('select elo from `' + season + '` where discord_id=%s', (winner,))
+    winner_elo = cursor.fetchone()[0]
+    cursor.execute('select elo from `' + season + '` where discord_id=%s', (loser,))
+    loser_elo = cursor.fetchone()[0]
+    # Get both players number of games played
+    cursor.execute('select count(*) from game_history where discord_id=%s and season=%s', (winner, season,))
+    winner_games = cursor.fetchone()[0]
+    cursor.execute('select count(*) from game_history where discord_id=%s and season=%s', (loser, season,))
+    loser_games = cursor.fetchone()[0]
+    # Set k values ### Will be based off # of games
+    winner_k = 32
+    loser_k = 32
+    # Calculate probability
+    winner_expected_outcome = winner_elo / (winner_elo + loser_elo)
+    loser_expected_outcome = loser_elo / (winner_elo + loser_elo)
+    # Calculate post game deltas and elos
+    winner_delta = winner_k * (1 - winner_expected_outcome)
+    winner_new_elo = winner_elo + winner_delta
 
-    # To calculate the Winning
-    # Probability of Player B
-    Pb = await Probability(Ra, Rb)
+    loser_delta = loser_k * (0 - loser_expected_outcome)
+    loser_new_elo = loser_elo + loser_delta
 
-    # To calculate the Winning
-    # Probability of Player A
-    Pa = await Probability(Rb, Ra)
-
-    # Calculate new ratings
-    Ra_new = Ra + K * (1 - Pa)
-    Rb_new = Rb + K * (0 - Pb)
-
-    ###db[winner_db_string][1] = Ra_new
-    ###db[loser_db_string][1] = Rb_new
-
-    # Return value changes in ratings
-    return Ra_new - Ra, Rb_new - Rb
+    # Insert game into database
+    cursor.execute('update `' + season + '` set elo=%s, wins=wins+1 where discord_id=%s', (winner_new_elo, winner,))
+    cursor.execute('update `' + season + '` set elo=%s, losses=losses+1 where discord_id=%s', (loser_new_elo, loser,))
+    winner_name = get_player_name(winner)
+    loser_name = get_player_name(loser)
+    cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s, %s, %s, %s, %s,)', \
+                   (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo, \
+                    winner, winner_name, winner_score, loser_score, season,))
 
 
 # Initiate discord client
@@ -87,7 +135,6 @@ async def add_player(id, season):
 
 
 async def add_season(season):
-    print(season)
     cursor.execute('insert into seasons (season_name, primary_ranked, primary_unranked) values (%s, 0, 0)', (season,))
     cursor.execute('create table `' + season + '` (player_name varchar(50), discord_id varchar(18), elo int, wins int, losses int)')
 
@@ -119,6 +166,10 @@ async def get_current_ranked_season():
     cursor.execute('select season_name from seasons where primary_ranked = 1')
     season = cursor.fetchone()
     return season[0]
+
+
+async def get_stats(discord_id, season=await get_current_ranked_season()):
+    print(season)
 
 
 @client.event
@@ -163,6 +214,7 @@ async def on_message(message):
             id = str(mentions[0].id)
         else:
             id = str(message.author.id)
+        await get_stats(id)
 
         ### Get stats function here
 
