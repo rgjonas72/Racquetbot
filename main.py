@@ -10,6 +10,8 @@ import discord
 import os
 import math
 import mysql.connector
+import pandas as pd
+from table2ascii import table2ascii as t2a, PresetStyle
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -217,11 +219,24 @@ async def get_stats(discord_id):
     disc_id, disc_name, elo, wins, losses = cursor.fetchone()
     return disc_id, disc_name, elo, wins, losses
 
+
+async def get_stats2(discord_id):
+    season = await get_current_ranked_season()
+    df = pd.read_sql(f'select * from `{season}` where discord_id={discord_id}', mydb)
+    print(df.head())
+    name = await get_player_name(discord_id)
+    embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
+    embed.add_field(name="Test", value="```Test```", inline=True)
+    embed.add_field(name="Test 2", value="```Test 2```", inline=True)
+    return embed
+
+
 @client.event
 async def on_ready():
     print('Logged in as {0.user}'.format(client))
     game = discord.Game(".help | RacquetBot")
     await client.change_presence(status=discord.Status.online, activity=game)
+
 
 
 @client.event
@@ -248,7 +263,14 @@ async def on_message(message):
             await message.channel.send("Must mention two players.")
             return
         score = msg.split('>')[-1].strip()
-        winner_score, loser_score = score.split('-')
+        try:
+            winner_score, loser_score = score.split('-')
+            winner_score = int(winner_score)
+            loser_score = int(loser_score)
+        except:
+            await message.channel.send('Error reading score. Provide score in format: 11-3')
+            return
+
         if int(winner_score) < int(loser_score):
             await message.channel.send("Winner must have a higher score.")
             return
@@ -268,7 +290,8 @@ async def on_message(message):
             id = str(message.author.id)
         disc_id, disc_name, elo, wins, losses = await get_stats(id)
         await message.channel.send("Elo:" + str(elo) + '\nWins:' + str(wins) + '\nLosses:' + str(losses))
-
+        embed = await get_stats2(id)
+        await message.channel.send(embed=embed)
         ### Get stats function here
 
 
