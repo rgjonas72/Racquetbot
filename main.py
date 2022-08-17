@@ -71,7 +71,7 @@ async def input_win(winner, loser, season):
 
 
 async def check_player_status(id, season):
-    c = cursor.execute('select discord_id from %s where id = %s', (season, id,))
+    c = cursor.execute('select discord_id from ' + season + ' where id = %s', (id,))
     if c.fetchone() is None:
         await add_player(id, season)
 
@@ -82,13 +82,13 @@ async def add_player(id, season):
     elo = 500
     if c.fetchone() is not None:
         elo = 1200
-    cursor.execute('insert into %s values (%s, %s, %s, 0, 0)', (season, name, id, elo))
+    cursor.execute('insert into ' + season + ' values (%s, %s, %s, 0, 0)', (name, id, elo))
 
 
 async def add_season(season):
+    print(season)
     cursor.execute('insert into seasons (season_name, primary_ranked, primary_unranked) values (%s, 0, 0)', (season,))
-    cursor.execute('create table %s (player_name varchar(50), discord_id int, elo int, wins int, losses int)',
-                   (season,))
+    cursor.execute('create table ' + season + ' (player_name varchar(50), discord_id int, elo int, wins int, losses int)')
 
 
 async def set_primary_season_ranked(season):
@@ -104,7 +104,7 @@ async def add_high_tier_player(id):
         return 'Already a high tier player.'
     name = await get_player_name(id)
     cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
-    ### Give them +700 elo here in current season%s
+    ### Give them +700 elo here in current season?
     return 'Player added'
 
 
