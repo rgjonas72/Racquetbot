@@ -243,7 +243,8 @@ async def get_stats2(discord_id):
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
     cols, data = df.to_string(index=False).split('\n', 1)
-    embed.add_field(name="```" + cols + "```", value=f"```\n" + data + "\n```")
+    embed.add_field(name="\u200b", value=f"```" + cols + "\n```")
+    embed.add_field(name="\u200b", value=f"```" + data + "\n```")
     return embed
 
 
