@@ -242,7 +242,8 @@ async def get_stats2(discord_id):
     data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
-    embed.add_field(name="```" + df.to_string(index=False)[0] + "```", value=f"```\n" + df.to_string(index=False)[1:] + "\n```")
+    cols, data = df.to_string(index=False).split('\n', 1)
+    embed.add_field(name="```" + cols + "```", value=f"```\n" + data + "\n```")
     return embed
 
 
