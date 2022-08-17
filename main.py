@@ -256,7 +256,7 @@ async def on_message(message):
         winner, loser = mentions
         current_season = await get_current_ranked_season()
         winner_elo, loser_elo = await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
-        await message.channel.send('Winner new elo:', str(winner_elo), 'Loser new elo:', str(loser_elo))
+        await message.channel.send('Winner new elo:' + str(winner_elo) + '\nLoser new elo:' + str(loser_elo))
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
