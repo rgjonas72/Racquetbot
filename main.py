@@ -232,7 +232,7 @@ async def get_stats2(discord_id):
         body=[[1, 'Team A', 2, 4, 6], [2, 'Team B', 3, 3, 6], [3, 'Team C', 4, 2, 6]],
         style=PresetStyle.ascii_borderless
     )'''
-    
+
     embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     '''
     header = t2a(body=df.columns.tolist(), style=PresetStyle.ascii_borderless)
@@ -242,7 +242,7 @@ async def get_stats2(discord_id):
     data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
-    embed.add_field(name="\u200b", value=f"```\n" + df.tostring() + "\n```")
+    embed.add_field(name="\u200b", value=f"```\n" + df.to_string() + "\n```")
     return embed
 
 
