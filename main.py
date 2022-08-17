@@ -227,12 +227,6 @@ async def get_stats2(discord_id):
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     name = await get_player_name(discord_id)
 
-    '''output = t2a(
-        header=["Rank", "Team", "Kills", "Position Pts", "Total"],
-        body=[[1, 'Team A', 2, 4, 6], [2, 'Team B', 3, 3, 6], [3, 'Team C', 4, 2, 6]],
-        style=PresetStyle.ascii_borderless
-    )'''
-
     #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
     '''
@@ -245,7 +239,7 @@ async def get_stats2(discord_id):
     '''
     cols, data = df.to_string(index=False).split('\n', 1)
     full_msg = f"```{cols}```\n```{data}```"
-    embed.add_field(name=f"{name}'s stats", value=f"```{cols}``````{data}```", inline=False)
+    embed.add_field(name=f"{name}'s stats", value=f"```{cols}``` ```{data}```", inline=False)
     #embed.add_field(name="\u200b", value=f"```{data}```", inline=False)
     #embed.add_field(name="\u200b", value=full_msg, inline=False)
     print(embed.to_dict())
