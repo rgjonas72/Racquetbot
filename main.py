@@ -109,7 +109,7 @@ async def add_high_tier_player(id):
 
 
 async def get_player_name(id):
-    n = await client.fetch_user(str(id)) 
+    n = await client.fetch_user(str(id))
     # , n.discriminator
     return n.display_name
 
@@ -153,16 +153,16 @@ async def on_message(message):
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season
-        await input_win(winner.id, loser.id, current_season)
+        await input_win(str(winner.id), str(loser.id), current_season)
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
         if len(mentions) > 1:
             await message.channel.send('Can only mention one player.')
         elif len(mentions) == 1:
-            id = mentions[0].id
+            id = str(mentions[0].id)
         else:
-            id = message.author.id
+            id = str(message.author.id)
 
         ### Get stats function here
 
@@ -173,7 +173,7 @@ async def on_message(message):
         mentions = message.mentions
         if len(mentions) != 1:
             await message.channel.send('Can only mention one player.')
-        result = await add_high_tier_player(mentions[0].id)
+        result = await add_high_tier_player(str(mentions[0].id))
         await message.channel.send(result)
 
     if message.content.lower().startswith('.addseason'):
