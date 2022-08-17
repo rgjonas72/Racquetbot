@@ -251,11 +251,11 @@ async def get_ladder(season):
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     embed = discord.Embed(color=0x70ac64)
     cols, data = df.to_string(index=False).split('\n', 1)
-
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```{data}```", inline=False)
+    df.style.set_properties(**{'text-align': 'left'})
+    embed.add_field(name=f"{season} Ladder", value=f"```{cols}```\n```{data}```", inline=False)
     return embed
-    
-    
+
+
 @client.event
 async def on_ready():
     print('Logged in as {0.user}'.format(client))
