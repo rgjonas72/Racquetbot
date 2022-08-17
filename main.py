@@ -246,6 +246,16 @@ async def get_stats2(discord_id):
     return embed
 
 
+async def get_ladder(season):
+    df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
+    df.columns = ['Name', 'Elo', 'Wins', 'Losses']
+    embed = discord.Embed(color=0x70ac64)
+    cols, data = df.to_string(index=False).split('\n', 1)
+
+    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```{data}```", inline=False)
+    return embed
+    
+    
 @client.event
 async def on_ready():
     print('Logged in as {0.user}'.format(client))
@@ -306,6 +316,12 @@ async def on_message(message):
         disc_id, disc_name, elo, wins, losses = await get_stats(id)
         await message.channel.send("Elo:" + str(elo) + '\nWins:' + str(wins) + '\nLosses:' + str(losses))
         embed = await get_stats2(id)
+        await message.channel.send(embed=embed)
+        ### Get stats function here
+
+    if message.content.lower().startswith('.ladder'):
+        season = await get_current_ranked_season()
+        embed = await get_ladder(season)
         await message.channel.send(embed=embed)
         ### Get stats function here
 
