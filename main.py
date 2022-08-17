@@ -226,14 +226,24 @@ async def get_stats2(discord_id):
     print(df.head())
     name = await get_player_name(discord_id)
 
-    output = t2a(
+    '''output = t2a(
         header=["Rank", "Team", "Kills", "Position Pts", "Total"],
         body=[[1, 'Team A', 2, 4, 6], [2, 'Team B', 3, 3, 6], [3, 'Team C', 4, 2, 6]],
-        style=PresetStyle.thin_compact
-    )
+        style=PresetStyle.ascii_borderless
+    )'''
 
     embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
-    embed.add_field(name="```Test```", value=f"```\n{output}\n```", inline=True)
+
+    output = t2a(
+        body=df.columns
+    )
+    embed.add_field(name="\u200b", value=f"```\n{output}\n```", inline=True)
+
+    output = t2a(
+        body=df.to_numpy()
+    )
+
+    embed.add_field(name="```\n{output}\n```", value=f"```\n{output}\n```", inline=True)
     return embed
 
 
