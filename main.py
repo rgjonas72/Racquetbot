@@ -233,7 +233,8 @@ async def get_stats2(discord_id):
         style=PresetStyle.ascii_borderless
     )'''
 
-    embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
+    #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
+    embed = discord.Embed(color=0x70ac64)
     '''
     header = t2a(body=df.columns.tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{header}\n```")
