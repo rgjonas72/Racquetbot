@@ -246,13 +246,13 @@ async def on_message(message):
             return
         score = msg.split('>')[-1].strip()
         winner_score, loser_score = score.split('-')
-        if winner_score < loser_score:
+        if int(winner_score) < int(loser_score):
             await message.channel.send("Winner must have a higher score.")
             return
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season()
-        await input_win(str(winner.id), str(loser.id), current_season, winner_score, loser_score)
+        await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
