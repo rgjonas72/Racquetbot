@@ -116,9 +116,9 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     cursor.execute('select elo from `' + season + '` where discord_id=%s', (loser,))
     loser_elo = cursor.fetchone()[0]
     # Get both players number of games played
-    cursor.execute('select count(*) from game_history where (winner_id=%s or loser_id=%s) and season=%s', (winner, winner, season,))
+    cursor.execute('select count(*) from game_history where (player1_id=%s or player2_id=%s) and season=%s', (winner, winner, season,))
     winner_games = cursor.fetchone()[0]
-    cursor.execute('select count(*) from game_history where (winner_id=%s or loser_id=%s) and season=%s', (loser, loser, season,))
+    cursor.execute('select count(*) from game_history where (player1_id=%s or player2_id=%s) and season=%s', (loser, loser, season,))
     loser_games = cursor.fetchone()[0]
     # Set k values ### Will be based off # of games
     winner_k = await get_k_value(winner_elo, winner_games)
