@@ -144,8 +144,10 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
-    # Probably return a lot more later
-    return winner_new_elo, loser_new_elo
+
+    print(cursor.lastrowid)
+
+
 
 
 # Initiate discord client
@@ -187,9 +189,8 @@ async def input_win(winner, loser, season, winner_score, loser_score):
     await check_player_status(winner, season);
     await check_player_status(loser, season);
 
-    winner_elo, loser_elo = await EloRating(winner, loser, season, winner_score, loser_score)
+    await EloRating(winner, loser, season, winner_score, loser_score)
     # Leaderboard update function here probably
-    return winner_elo, loser_elo
 
 
 async def check_player_status(id, season):
@@ -258,31 +259,17 @@ async def get_current_unranked_season():
 
 async def get_stats(discord_id):
     season = await get_current_ranked_season()
-    cursor.execute('select * from `' + season + '` where discord_id=%s', (discord_id,))
-    disc_id, disc_name, elo, wins, losses = cursor.fetchone()
-    return disc_id, disc_name, elo, wins, losses
-
-
-async def get_stats2(discord_id):
-    season = await get_current_ranked_season()
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
     print(df.head())
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
-    #name = await get_player_name(discord_id)
+    name = await get_player_name(discord_id)
 
     #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
-    '''
-    header = t2a(body=df.columns.tolist(), style=PresetStyle.ascii_borderless)
-    embed.add_field(name="\u200b", value=f"```\n{header}\n```")
 
-
-    data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
-    embed.add_field(name="\u200b", value=f"```\n{data}\n```")
-    '''
     cols, data = df.to_string(index=False, justify="center", col_space=10).split('\n', 1)
 
-    embed.add_field(name=f"<@{discord_id}> stats", value=f"```{cols}``````\n{data}```", inline=False)
+    embed.add_field(name=f"{name} stats", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
 
 
@@ -366,8 +353,8 @@ async def on_message(message):
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season()
-        winner_elo, loser_elo = await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
-        await message.channel.send('Winner new elo:' + str(winner_elo) + '\nLoser new elo:' + str(loser_elo))
+        await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
+        await message.channel.send('Game input.')
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
@@ -377,7 +364,7 @@ async def on_message(message):
             id = str(mentions[0].id)
         else:
             id = str(message.author.id)
-        embed = await get_stats2(id)
+        embed = await get_stats(id)
         await message.channel.send(embed=embed)
         ### Get stats function here
 
@@ -453,9 +440,6 @@ async def on_message(message):
             return
 
         await reverse_game(game_id, winner_score, loser_score)
-
-
-
 
 
 # keep_alive()
