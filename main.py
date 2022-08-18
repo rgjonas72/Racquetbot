@@ -268,7 +268,7 @@ async def get_stats2(discord_id):
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
     print(df.head())
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
-    name = await get_player_name(discord_id)
+    #name = await get_player_name(discord_id)
 
     #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
@@ -281,11 +281,8 @@ async def get_stats2(discord_id):
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
     cols, data = df.to_string(index=False, justify="center", col_space=10).split('\n', 1)
-    full_msg = f"```{cols}\n``````{data}```"
-    embed.add_field(name=f"{name}'s stats", value=f"```{cols}``````\n{data}```", inline=False)
-    #embed.add_field(name="\u200b", value=f"```{data}```", inline=False)
-    #embed.add_field(name="\u200b", value=full_msg, inline=False)
-    print(embed.to_dict())
+
+    embed.add_field(name=f"<@{discord_id}> stats", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
 
 
