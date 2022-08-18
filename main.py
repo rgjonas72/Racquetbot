@@ -250,7 +250,7 @@ async def get_ladder(season):
     embed = discord.Embed(color=0x70ac64)
     cols, data = df.to_string(index=False, justify='center', col_space=[3,12,4,3,3]).split('\n', 1)
 
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``````\n{data}```", inline=False)
+    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n {data}```", inline=False)
     return embed
 
 
