@@ -156,8 +156,8 @@ client = discord.Client(intents=intents)
 # Parameters: ID of winner and loser, and string of queue type
 # Queue type either 'Ranked' or 'Friendly'
 async def input_unranked_win(winner, loser, season, winner_score, loser_score):
-    await check_player_status(winner, season);
-    await check_player_status(loser, season);
+    await check_player_status_unranked(winner, season);
+    await check_player_status_unranked(loser, season);
     cursor.execute('update `' + season + '` set wins=wins+1 where discord_id=%s', (winner,))
     cursor.execute('update `' + season + '` set losses=losses+1 where discord_id=%s', (loser,))
     winner_name = await get_player_name(winner)
@@ -273,7 +273,7 @@ async def get_stats2(discord_id):
     data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
-    cols, data = df.to_string(index=False, justify="center").split('\n', 1)
+    cols, data = df.to_string(index=False, justify="center", colspace=7).split('\n', 1)
     full_msg = f"```{cols}\n``````{data}```"
     embed.add_field(name=f"{name}'s stats", value=f"```{cols}``````\n{data}```", inline=False)
     #embed.add_field(name="\u200b", value=f"```{data}```", inline=False)
@@ -286,7 +286,7 @@ async def get_ladder(season):
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False, justify='left').split('\n', 1)
+    cols, data = df.to_string(index=False, justify='left', colspace=7).split('\n', 1)
 
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
@@ -418,8 +418,8 @@ async def on_message(message):
 
 
     if message.content.lower().startswith('.primaryunranked'):
-        await message.channel.send('Command disabled.')
-        return
+        #await message.channel.send('Command disabled.')
+        #return
         if not auth_user:
             await message.channel.send('Not allowed to use this command.')
             return
