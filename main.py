@@ -248,9 +248,7 @@ async def get_ladder(season):
     df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
-
-    df.style.set_properties(**{'text-align': 'left'})
-
+    
     cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
 
