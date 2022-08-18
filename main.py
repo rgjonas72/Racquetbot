@@ -112,7 +112,11 @@ async def output_game_unranked(game_id, winner, loser, winner_score, loser_score
 
 
 async def reverse_game(game_id, winner_score, loser_score):
-    pass
+    cursor.execute('select * from game_history where game_id=%s', (game_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return None
+
 
 
 # Parameters: ID of winner and loser, and string of queue type
@@ -339,7 +343,6 @@ async def on_message(message):
         await message.channel.send(embed=embed)
         ### Get stats function here
 
-
     if message.content.lower().startswith('.addhightierplayer'):
         if not auth_user:
             await message.channel.send('Not allowed to use this command.')
@@ -371,7 +374,6 @@ async def on_message(message):
             return
         await set_primary_season_ranked(season)
         await message.channel.send(f'{season} set as current ranked season.')
-
 
     if message.content.lower().startswith('.primaryunranked'):
         await message.channel.send('Command disabled.')
