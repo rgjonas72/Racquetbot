@@ -263,7 +263,7 @@ async def find_index_in_line(line):
 async def pretty_to_string(df):
     lines = df.to_string().split('\n')
     header = lines[0]
-    m = await blanks_comp.match(header)
+    m = blanks_comp.match(header)
     indices = []
     if m:
         st_index = m.start(1)
