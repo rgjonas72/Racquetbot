@@ -249,9 +249,9 @@ async def get_ladder(season):
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
 
-    df = df.style.set_properties(**{'text-align': 'left'})
-    df = df.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
-    
+    df.style.set_properties(**{'text-align': 'left'})
+    df.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
+
     cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
 
