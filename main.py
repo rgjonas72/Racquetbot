@@ -100,15 +100,19 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
                     winner, winner_name, winner_score, loser_score, season,))
 
     game_id = cursor.lastrowid
-    embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score)
+    embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score)
     return embed
 
-async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score):
+
+async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
-    #embed.add_field(name=f"__Winner__", value=f"<@{winner}> +{winner_delta} elo\n{winner_elo} --> {winner_new_elo}", inline=False)
-    #embed.add_field(name=f"__Loser__", value=f"<@{loser}> {loser_delta} elo\n{loser_elo} --> {loser_new_elo}", inline=False)
     embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** \
                     \n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})**", inline=False)
+    return embed
+
+
+async def output_game_unranked(game_id, winner, loser, winner_score, loser_score):
+    embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     return embed
 
 
@@ -127,7 +131,9 @@ async def input_unranked_win(winner, loser, season, winner_score, loser_score):
     loser_name = await get_player_name(loser)
     cursor.execute('insert into game_history values (NULL, %s, %s, 0, 0, 0, %s, %s, 0, 0, 0, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, loser, loser_name, winner, winner_name, winner_score, loser_score, season,))
-
+    game_id = cursor.lastrowid
+    embed = await output_game_unranked(game_id, winner, loser, winner_score, loser_score)
+    return embed
 
 async def check_player_status_unranked(id, season):
     cursor.execute('select discord_id from `' + season + '` where discord_id = %s', (id,))
@@ -287,8 +293,8 @@ async def on_message(message):
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_unranked_season()
-        await input_unranked_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
-        await message.channel.send('Game entered.')
+        embed = await input_unranked_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
+        await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.ranked'):
         # Make it so user can't @ themselves twice...
