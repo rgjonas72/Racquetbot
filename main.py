@@ -104,8 +104,7 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     return embed
 
 async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score):
-    embed = discord.Embed(title=f"Racquetball game id #{game_id}", color=0x70ac64)
-    embed.add_field(name=f"<@{winner}> {winner_score}-{loser_score} <@{loser}>", inline=False)
+    embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'name=f"<@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     embed.add_field(name=f"__Winner__", value=f"<@{winner}> +{winner_delta} elo\n{winner_elo} --> {winner_new_elo}", inline=False)
     embed.add_field(name=f"__Loser__", value=f"<@{loser}> +{loser_delta} elo\n{loser_elo} --> {loser_new_elo}", inline=False)
     return embed
