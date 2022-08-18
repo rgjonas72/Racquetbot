@@ -257,7 +257,7 @@ async def get_ladder(season):
     cols, data = x.split('\n', 1)
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
     embed.add_field(name=f"---------------", value=f"----------------", inline=False)
-    embed.add_field(name=f"{season} Ladder", value=f"```{x}```", inline=False)
+    embed.add_field(name=f"{season} Ladder", value=f"```\n{x}```", inline=False)
     return embed
 
 
