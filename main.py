@@ -232,7 +232,7 @@ async def add_high_tier_player(id):
         return 'Already a high tier player.'
     name = await get_player_name(id)
     cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
-    ### Give them +700 elo here in current season?
+    ### Give them +500 elo here in current season?
     elo_boost = 500
     season = await get_current_ranked_season()
     cursor.execute('update `' + season + '` set elo=elo+%s where discord_id=%s', (elo_boost, id,))
@@ -280,7 +280,7 @@ async def get_stats2(discord_id):
     data = t2a(body=df.to_numpy().tolist(), style=PresetStyle.ascii_borderless)
     embed.add_field(name="\u200b", value=f"```\n{data}\n```")
     '''
-    cols, data = df.to_string(index=False, justify="center", colspace=7).split('\n', 1)
+    cols, data = df.to_string(index=False, justify="center", col_space=10).split('\n', 1)
     full_msg = f"```{cols}\n``````{data}```"
     embed.add_field(name=f"{name}'s stats", value=f"```{cols}``````\n{data}```", inline=False)
     #embed.add_field(name="\u200b", value=f"```{data}```", inline=False)
@@ -293,7 +293,7 @@ async def get_ladder(season):
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False, justify='left', col_space=7).split('\n', 1)
+    cols, data = df.to_string(index=False, justify='left', col_space=10).split('\n', 1)
 
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
