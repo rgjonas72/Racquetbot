@@ -100,8 +100,7 @@ async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo,
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     winner_rank = await get_player_rank(winner, season)
     loser_rank = await get_player_rank(loser, season)
-    embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** | #{winner_rank} \
-                    \n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})** | #{loser_rank}", inline=False)
+    embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** | #{winner_rank}\n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})** | #{loser_rank}", inline=False)
 
     return embed
 
@@ -227,15 +226,15 @@ async def get_current_unranked_season():
 
 async def get_stats(discord_id):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
+    df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
     print(df.head())
-    df.columns = ['Name', 'Elo', 'Wins', 'Losses']
+    df.columns = ['Rank', 'Name', 'Elo', 'Wins', 'Losses']
     name = await get_player_name(discord_id)
 
     #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
 
-    cols, data = df.to_string(index=False, justify="center", col_space=10).split('\n', 1)
+    cols, data = df.to_string(index=False, justify="start", col_space=7).split('\n', 1)
 
     embed.add_field(name=f"{name} stats", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
@@ -246,7 +245,7 @@ async def get_ladder(season):
     df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'Wins', 'Losses']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False, justify='left', col_space=10).split('\n', 1)
+    cols, data = df.to_string(index=False, justify='start', col_space=7).split('\n', 1)
 
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
