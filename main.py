@@ -5,6 +5,7 @@ import mysql.connector
 import pandas as pd
 from table2ascii import table2ascii as t2a, PresetStyle
 import numpy as np
+import re
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -12,6 +13,9 @@ mydb = mysql.connector.connect(
     password = "racquet",
     database = "racquetbot"
 )
+
+blanks = r'^ *([a-zA-Z_0-9-]*) .*$'
+blanks_comp = re.compile(blanks)
 
 mydb.autocommit = True
 cursor = mydb.cursor()
@@ -244,10 +248,22 @@ async def get_stats(discord_id):
     return embed
 
 
+
+async def find_index_in_line(line):
+    index = 0
+    spaces = False
+    for ch in line:
+        if ch == ' ':
+            spaces = True
+        elif spaces:
+            break
+        index += 1
+    return index
+
 async def pretty_to_string(df):
     lines = df.to_string().split('\n')
     header = lines[0]
-    m = blanks_comp.match(header)
+    m = await blanks_comp.match(header)
     indices = []
     if m:
         st_index = m.start(1)
