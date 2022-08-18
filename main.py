@@ -337,6 +337,9 @@ async def on_message(message):
 
     if message.content.lower().startswith('.addseason'):
         season = str(msg.split('.addseason', 1)[1]).strip()
+        if len(season) < 1:
+            await message.channel.send('Provide a name for the season.')
+            return
         await add_season(season)
         await message.channel.send('Season added. Type .primaryranked or .primaryunranked followed by the season name to set it as the current season.')
 
