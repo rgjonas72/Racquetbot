@@ -226,15 +226,18 @@ async def get_current_unranked_season():
 
 async def get_stats(discord_id):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f'select rank() over (select elo from `{season}`order by elo desc) as rank, player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
+    rank = await get_player_rank(discord_id, season)
+    df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
+    df.insert(0, 'Rank', rank)
     print(df.head())
-    df.columns = ['Rank', 'Name', 'Elo', 'Wins', 'Losses']
+
+    df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     name = await get_player_name(discord_id)
 
     #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
 
-    cols, data = df.to_string(index=False, justify="left", col_space=7).split('\n', 1)
+    cols, data = df.to_string(index=False, justify="left", col_space=[4,10,4,2,2]).split('\n', 1)
 
     embed.add_field(name=f"{name} stats", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
@@ -243,9 +246,9 @@ async def get_stats(discord_id):
 async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
-    df.columns = ['Rank', 'Name', 'Elo', 'Wins', 'Losses']
+    df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False, justify='left', col_space=7).split('\n', 1)
+    cols, data = df.to_string(index=False, justify='left', col_space=[4,10,4,2,2]).split('\n', 1)
 
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
