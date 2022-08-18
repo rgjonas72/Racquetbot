@@ -153,6 +153,10 @@ intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
 
+async def reverse_game(game_id, winner_score, loser_score):
+    
+
+
 # Parameters: ID of winner and loser, and string of queue type
 # Queue type either 'Ranked' or 'Friendly'
 async def input_unranked_win(winner, loser, season, winner_score, loser_score):
@@ -229,7 +233,10 @@ async def add_high_tier_player(id):
     name = await get_player_name(id)
     cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
     ### Give them +700 elo here in current season?
-    return 'Player added'
+    elo_boost = 500
+    season = await get_current_ranked_season()
+    cursor.execute('update `' + season + '` set elo=elo+%s where discord_id=%s', (elo_boost, id,))
+    return f'Player added and granted {elo_boost} elo.'
 
 
 async def get_player_name(id):
@@ -317,7 +324,7 @@ async def on_message(message):
     except:
         print(message.author.id)
 
-    if message.content.lower().startswith('.normal'):
+    if message.content.lower().startswith('.normal') or message.content.lower().startswith('.unranked'):
         # Make it so user can't @ themselves twice...
         mentions = message.mentions
         if len(mentions) != 2:
@@ -429,6 +436,26 @@ async def on_message(message):
             return
         await set_primary_season_unranked(season)
         await message.channel.send(f'{season} set as current unranked season.')
+
+    if message.content.lower().startswith('.changewin'):
+        if not auth_user:
+            await message.channel.send('Not allowed to use this command.')
+            return
+        try:
+            input = str(msg.lower().split('.changewin', 1)[1]).replace(" ", "")
+            game_id, score = input.split(',')
+            winner_score, loser_score = score.split('-')
+            winner_score = int(winner_score)
+            loser_score = int(loser_score)
+        except:
+            await message.channel.send('Error reading input. Provide: <game id>,<score>')
+            return
+
+        if int(winner_score) < int(loser_score):
+            await message.channel.send("Winner must have a higher score.")
+            return
+
+        await reverse_game(game_id, winner_score, loser_score)
 
 
 
