@@ -23,56 +23,10 @@ mydb = mysql.connector.connect(
 mydb.autocommit = True
 cursor = mydb.cursor()
 
+# Initiate discord client
+intents = discord.Intents.all()
+client = discord.Client(intents=intents)
 
-'''
-#K value gradation based on elo
-k_valuea = 50
-k_valueb = 32
-k_valuec = 24
-k_valued = 16
-
-#elo thresholds 
-k_thresholda = 2400
-k_thresholdb = 2100
-
-#number of games to get noob K value
-noob_game_count = 5
-
-p1_k = 32
-p2_k = 50
-
-#number of games played to calculate variable K value
-#test numbers
-p1_ngames = 10
-p2_ngames = 2
-
-#check what elo range player 1 is in
-if p1_rating >= k_thresholda:
-  p1_k = k_valued
-
-if p1_rating >= k_thresholdb and p1_rating < k_thresholda:
-  p1_k = k_valuec
-
-if p1_rating < k_thresholdb:
-  p1_k = k_valueb
-  
-#check what elo range player 2 is in
-if p2_rating >= k_thresholda:
-  p2_k = k_valued
-
-if p2_rating >= k_thresholdb and p1_rating < k_thresholda:
-  p2_k = k_valuec
-
-if p1_rating < k_thresholdb:
-  p2_k = k_valueb
-
-#if the player has less than x number of games, make them earn more 
-if p1_ngames <= noob_game_count:
-  p1_k = k_valuea
-
-if p2_ngames <= noob_game_count:
-  p2_k = k_valuea
-'''
 
 async def get_k_value(elo, ngames):
     # K value gradation based on elo
@@ -145,14 +99,16 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
 
-    print(cursor.lastrowid)
+    game_id = cursor.lastrowid
+    embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score)
+    return embed
 
-
-
-
-# Initiate discord client
-intents = discord.Intents.all()
-client = discord.Client(intents=intents)
+async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score):
+    embed = discord.Embed(title=f"Racquetball game id #{game_id}", color=0x70ac64)
+    embed.add_field(name=f"<@{winner}> {winner_score}-{loser_score} <@{loser}>", inline=False)
+    embed.add_field(name=f"__Winner__", value=f"<@{winner}> +{winner_delta} elo\n{winner_elo} --> {winner_new_elo}", inline=False)
+    embed.add_field(name=f"__Loser__", value=f"<@{loser}> +{loser_delta} elo\n{loser_elo} --> {loser_new_elo}", inline=False)
+    return embed
 
 
 async def reverse_game(game_id, winner_score, loser_score):
@@ -189,8 +145,9 @@ async def input_win(winner, loser, season, winner_score, loser_score):
     await check_player_status(winner, season);
     await check_player_status(loser, season);
 
-    await EloRating(winner, loser, season, winner_score, loser_score)
-    # Leaderboard update function here probably
+    embed = await EloRating(winner, loser, season, winner_score, loser_score)
+
+    return embed
 
 
 async def check_player_status(id, season):
@@ -353,8 +310,9 @@ async def on_message(message):
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season()
-        await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
-        await message.channel.send('Game input.')
+        embed = await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
+        await message.channel.send(embed=embed)
+        #await message.channel.send('Game input.')
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
