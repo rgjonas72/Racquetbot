@@ -1,11 +1,3 @@
-# Rank 1 role
-
-# 1200 elo start, 500 for shitter
-
-# log score, avg point differential, winrate vs player, point dif vs player
-
-# rated, unrated queue
-
 import discord
 import os
 import math
@@ -414,8 +406,6 @@ async def on_message(message):
 
         await reverse_game(game_id, winner_score, loser_score)
 
-
-# keep_alive()
 # client.run(os.environ['TOKEN'])
 TOKEN = open("/repo/discord_token.txt", "r").read()
 client.run(TOKEN)
