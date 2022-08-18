@@ -249,16 +249,17 @@ async def get_ladder(season):
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
 
+    df = df.style.set_properties(**{'text-align': 'left'})
+    df = df.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
+    
     cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
 
     ####################
     t = ['left', 'right', 'center', 'justify', 'justify - all', 'start', 'end', 'inherit', 'match - parent', 'initial', 'unset']
     for i in t:
-        df = df.style.set_properties(**{'text-align': 'left'})
-        df = df.set_table_styles([dict(selector='th', props=[('text-align', 'left')])])
         x = df.to_string(index=True, justify=i, col_space=[3,12,4,3,3])
-        
+
         cols, data = x.replace('\n', '\n ').split('\n', 1)
         embed.add_field(name=f"{i}", value=f"```{cols}``` ```\n{data}```", inline=False)
         embed.add_field(name=f"{i} v2", value=f"```{x}```", inline=False)
