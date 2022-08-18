@@ -191,6 +191,13 @@ async def set_primary_season_ranked(season):
     cursor.execute('update seasons set primary_ranked = 1, start_date = now() where season_name = %s', (season,))
 
 
+async def set_primary_season_unranked(season):
+    # End the current season
+    cursor.execute('update seasons set primary_unranked = 0, end_date = now() where primary_unranked = 1')
+    # Set primary ranked season to specified season
+    cursor.execute('update seasons set primary_unranked = 1, start_date = now() where season_name = %s', (season,))
+
+
 async def add_high_tier_player(id):
     cursor.execute('select * from HighTierPlayers where discord_id=%s', (id,))
     if cursor.fetchone() is not None:
@@ -209,6 +216,11 @@ async def get_player_name(id):
 
 async def get_current_ranked_season():
     cursor.execute('select season_name from seasons where primary_ranked = 1')
+    season = cursor.fetchone()
+    return season[0]
+
+async def get_current_unranked_season():
+    cursor.execute('select season_name from seasons where primary_unranked = 1')
     season = cursor.fetchone()
     return season[0]
 
@@ -329,6 +341,7 @@ async def on_message(message):
     if message.content.lower().startswith('.addhightierplayer'):
         if not auth_user:
             await message.channel.send('Not allowed to use this command.')
+            return
         mentions = message.mentions
         if len(mentions) != 1:
             await message.channel.send('Can only mention one player.')
@@ -336,6 +349,9 @@ async def on_message(message):
         await message.channel.send(result)
 
     if message.content.lower().startswith('.addseason'):
+        if not auth_user:
+            await message.channel.send('Not allowed to use this command.')
+            return
         season = str(msg.split('.addseason', 1)[1]).strip()
         if len(season) < 1:
             await message.channel.send('Provide a name for the season.')
@@ -344,9 +360,28 @@ async def on_message(message):
         await message.channel.send('Season added. Type .primaryranked or .primaryunranked followed by the season name to set it as the current season.')
 
     if message.content.lower().startswith('.primaryranked'):
+        if not auth_user:
+            await message.channel.send('Not allowed to use this command.')
+            return
         season = str(msg.split('.primaryranked', 1)[1]).strip()
+        if len(season) < 1:
+            await message.channel.send('Provide a name for the season.')
+            return
         await set_primary_season_ranked(season)
         await message.channel.send(f'{season} set as current ranked season.')
+
+    if message.content.lower().startswith('.primaryunranked'):
+        if not auth_user:
+            await message.channel.send('Not allowed to use this command.')
+            return
+        season = str(msg.split('.primaryunranked', 1)[1]).strip()
+        if len(season) < 1:
+            await message.channel.send('Provide a name for the season.')
+            return
+        await set_primary_season_unranked(season)
+        await message.channel.send(f'{season} set as current unranked season.')
+
+
 
 
 # keep_alive()
