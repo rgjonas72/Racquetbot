@@ -4,6 +4,7 @@ import math
 import mysql.connector
 import pandas as pd
 from table2ascii import table2ascii as t2a, PresetStyle
+import numpy as np
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -243,6 +244,29 @@ async def get_stats(discord_id):
     return embed
 
 
+async def pretty_to_string(df):
+    lines = df.to_string().split('\n')
+    header = lines[0]
+    m = blanks_comp.match(header)
+    indices = []
+    if m:
+        st_index = m.start(1)
+        indices.append(st_index)
+
+    non_header_lines = lines[1:len(lines)]
+
+    for line in non_header_lines:
+        index = find_index_in_line(line)
+        indices.append(index)
+
+    mn = np.min(indices)
+    newlines = []
+    for l in lines:
+        newlines.append(l[mn:len(l)])
+
+    return '\n'.join(newlines)
+
+
 async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
@@ -263,12 +287,9 @@ async def get_ladder(season):
         embed.add_field(name=f"{i}", value=f"```{cols}``` ```\n{data}```", inline=False)
         embed.add_field(name=f"{i} v2", value=f"```{x}```", inline=False)
     ####################
-    longest = max([len(str(s)) for s in df.index]) + 1
-    lines = df.to_string().split('\n')
-    lines = [l[longest:] for l in lines]
-    x = '\n'.join(lines)
-    embed.add_field(name=f"{i} v2", value=f"```{x}```", inline=False)
-    
+    x = await pretty_to_string(df)
+    embed.add_field(name=f"test", value=f"```{x}```", inline=False)
+
 
     return embed
 
