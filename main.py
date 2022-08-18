@@ -154,7 +154,7 @@ client = discord.Client(intents=intents)
 
 
 async def reverse_game(game_id, winner_score, loser_score):
-    
+    pass
 
 
 # Parameters: ID of winner and loser, and string of queue type
