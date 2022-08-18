@@ -286,7 +286,7 @@ async def get_ladder(season):
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df.columns = ['Name', 'Elo', 'Wins', 'Losses']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False, justify='left', colspace=7).split('\n', 1)
+    cols, data = df.to_string(index=False, justify='left', col_space=7).split('\n', 1)
 
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``````\n{data}```", inline=False)
     return embed
@@ -403,7 +403,7 @@ async def on_message(message):
             await message.channel.send('Provide a name for the season.')
             return
         await add_season(season)
-        await message.channel.send('Season added. Type .primaryranked or .primaryunranked followed by the season name to set it as the current season.')
+        await message.channel.send('Season added. Type .primaryranked followed by the season name to set it as the current season.')
 
     if message.content.lower().startswith('.primaryranked'):
         if not auth_user:
@@ -418,8 +418,8 @@ async def on_message(message):
 
 
     if message.content.lower().startswith('.primaryunranked'):
-        #await message.channel.send('Command disabled.')
-        #return
+        await message.channel.send('Command disabled.')
+        return
         if not auth_user:
             await message.channel.send('Not allowed to use this command.')
             return
