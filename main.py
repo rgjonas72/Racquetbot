@@ -100,18 +100,21 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
                     winner, winner_name, winner_score, loser_score, season,))
 
     game_id = cursor.lastrowid
-    embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score)
+    embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season)
     return embed
 
 
-async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score):
+async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
-    embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** \
-                    \n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})**", inline=False)
+    winner_rank = await get_player_rank(winner, season)
+    loser_rank = await get_player_rank(loser, season)
+    embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** | #{winner_rank} \
+                    \n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})** | #{loser_rank}", inline=False)
+
     return embed
 
 
-async def output_game_unranked(game_id, winner, loser, winner_score, loser_score):
+async def output_game_unranked(game_id, winner, loser, winner_score, loser_score, season):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     return embed
 
@@ -132,7 +135,7 @@ async def input_unranked_win(winner, loser, season, winner_score, loser_score):
     cursor.execute('insert into game_history values (NULL, %s, %s, 0, 0, 0, %s, %s, 0, 0, 0, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, loser, loser_name, winner, winner_name, winner_score, loser_score, season,))
     game_id = cursor.lastrowid
-    embed = await output_game_unranked(game_id, winner, loser, winner_score, loser_score)
+    embed = await output_game_unranked(game_id, winner, loser, winner_score, loser_score, season)
     return embed
 
 async def check_player_status_unranked(id, season):
@@ -203,6 +206,11 @@ async def add_high_tier_player(id):
     cursor.execute('update `' + season + '` set elo=elo+%s where discord_id=%s', (elo_boost, id,))
     return f'Player added and granted {elo_boost} elo.'
 
+
+async def get_player_rank(discord_id, season):
+    cursor.execute('select count(*) from `' + season + '` where elo >= (select elo from `' + season + '` where discord_id=%s)', (discord_id,))
+    rank_num = cursor.fetchone()[0]
+    return rank_num
 
 async def get_player_name(id):
     n = await client.fetch_user(str(id))
