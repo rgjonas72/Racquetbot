@@ -237,9 +237,13 @@ async def get_stats(discord_id):
     #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
 
-    cols, data = df.to_string(index=False, justify="left", col_space=[3,12,4,3,3]).split('\n', 1)
-
+    
+    x = df.to_string(index=False, justify="left", col_space=[3,12,4,3,3]).split('\n', 1)
+    cols, data = x
+    
     embed.add_field(name=f"{name} stats", value=f"```{cols}``` ```\n{data}```", inline=False)
+    embed.add_field(name=f"---------------", value=f"----------------", inline=False)
+    embed.add_field(name=f"{season} Ladder", value=f"```{x}```", inline=False)
     return embed
 
 
@@ -248,9 +252,11 @@ async def get_ladder(season):
     df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
-    cols, data = df.to_string(index=False, justify='left', col_space=[3,12,4,3,3]).split('\n', 1)
-
+    x = df.to_string(index=False, justify='left', col_space=[3,12,4,3,3]).split('\n', 1)
+    cols, data = x
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
+    embed.add_field(name=f"---------------", value=f"----------------", inline=False)
+    embed.add_field(name=f"{season} Ladder", value=f"```{x}```", inline=False)
     return embed
 
 
