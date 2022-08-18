@@ -258,7 +258,7 @@ async def get_ladder(season):
     t = ['left', 'right', 'center', 'justify', 'justify - all', 'start', 'end', 'inherit', 'match - parent', 'initial', 'unset']
     for i in t:
         cols, data = df.to_string(index=True, justify=i, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-        embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
+        embed.add_field(name=f"{i}", value=f"```{cols}``` ```\n{data}```", inline=False)
     ####################
 
     return embed
