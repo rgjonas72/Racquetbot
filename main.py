@@ -155,6 +155,30 @@ client = discord.Client(intents=intents)
 
 # Parameters: ID of winner and loser, and string of queue type
 # Queue type either 'Ranked' or 'Friendly'
+async def input_unranked_win(winner, loser, season, winner_score, loser_score):
+    await check_player_status(winner, season);
+    await check_player_status(loser, season);
+    cursor.execute('update `' + season + '` set wins=wins+1 where discord_id=%s', (winner,))
+    cursor.execute('update `' + season + '` set losses=losses+1 where discord_id=%s', (loser,))
+    winner_name = await get_player_name(winner)
+    loser_name = await get_player_name(loser)
+    cursor.execute('insert into game_history values (NULL, %s, %s, 0, 0, 0, %s, %s, 0, 0, 0, now(), %s, %s, %s, %s, %s)',
+                   (winner, winner_name, loser, loser_name, winner, winner_name, winner_score, loser_score, season,))
+
+
+async def check_player_status_unranked(id, season):
+    cursor.execute('select discord_id from `' + season + '` where discord_id = %s', (id,))
+    if cursor.fetchone() is None:
+        await add_player_unranked(id, season)
+
+
+async def add_player_unranked(id, season):
+    name = await get_player_name(id)
+    cursor.execute('insert into `' + season + '` values (%s, %s, 0, 0, 0)', (name, id))
+
+
+# Parameters: ID of winner and loser, and string of queue type
+# Queue type either 'Ranked' or 'Friendly'
 async def input_win(winner, loser, season, winner_score, loser_score):
     await check_player_status(winner, season);
     await check_player_status(loser, season);
@@ -293,6 +317,30 @@ async def on_message(message):
     except:
         print(message.author.id)
 
+    if message.content.lower().startswith('.normal'):
+        # Make it so user can't @ themselves twice...
+        mentions = message.mentions
+        if len(mentions) != 2:
+            await message.channel.send("Must mention two players.")
+            return
+        score = msg.split('>')[-1].strip()
+        try:
+            winner_score, loser_score = score.split('-')
+            winner_score = int(winner_score)
+            loser_score = int(loser_score)
+        except:
+            await message.channel.send('Error reading score. Provide score in format: 11-3')
+            return
+
+        if int(winner_score) < int(loser_score):
+            await message.channel.send("Winner must have a higher score.")
+            return
+        # Winner is first player mentioned, loser is second
+        winner, loser = mentions
+        current_season = await get_current_unranked_season()
+        await input_unranked_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
+        await message.channel.send('Game entered.')
+
     if message.content.lower().startswith('.ranked'):
         # Make it so user can't @ themselves twice...
         mentions = message.mentions
@@ -325,8 +373,6 @@ async def on_message(message):
             id = str(mentions[0].id)
         else:
             id = str(message.author.id)
-        disc_id, disc_name, elo, wins, losses = await get_stats(id)
-        await message.channel.send("Elo:" + str(elo) + '\nWins:' + str(wins) + '\nLosses:' + str(losses))
         embed = await get_stats2(id)
         await message.channel.send(embed=embed)
         ### Get stats function here
@@ -370,7 +416,10 @@ async def on_message(message):
         await set_primary_season_ranked(season)
         await message.channel.send(f'{season} set as current ranked season.')
 
+
     if message.content.lower().startswith('.primaryunranked'):
+        await message.channel.send('Command disabled.')
+        return
         if not auth_user:
             await message.channel.send('Not allowed to use this command.')
             return
@@ -380,6 +429,7 @@ async def on_message(message):
             return
         await set_primary_season_unranked(season)
         await message.channel.send(f'{season} set as current unranked season.')
+
 
 
 
