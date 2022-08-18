@@ -249,39 +249,16 @@ async def get_ladder(season):
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
 
-    cols, data = df.to_string(index=False, justify='left', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
+    df = df.style.set_properties(**{'text-align': 'left'})
+
+    cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
     embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
 
     ####################
-    cols, data = df.to_string(index=False, justify='right', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='center', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='justify', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='justify-all', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='start', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='end', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='inherit', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='match-parent', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='initial', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-    
-    cols, data = df.to_string(index=False, justify='unset', col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
+    t = ['left', 'right', 'center', 'justify', 'justify - all', 'start', 'end', 'inherit', 'match - parent', 'initial', 'unset']
+    for i in t:
+        cols, data = df.to_string(index=False, justify=i, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
+        embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
     ####################
 
     return embed
