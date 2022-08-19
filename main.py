@@ -330,9 +330,9 @@ async def get_stats(discord_id):
 
 async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
-    df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, discord_id, elo, wins, losses from `{season}`', mydb)
+    df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
-    df['Name'] = '<@' + df['Name'] + '>'
+    
     cols = df.columns
     ar = df.to_numpy()
     out = ["{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols)]
