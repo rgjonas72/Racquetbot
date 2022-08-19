@@ -119,7 +119,7 @@ async def output_game(game_id):
         player2_rank = await get_player_rank(player2, season)
         embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
         if invalid == 1:
-           embed.set_footer(text=':x: Game invalid :x:')
+           embed.set_footer(text='Game invalid', icon_url="https://discord.com/assets/8becd37ab9d13cdfe37c08c496a9def3.svg")
     cursor.close()
     return embed
 
@@ -629,10 +629,10 @@ async def on_message(message):
         result = await invalidate_game(game_id)
         await message.channel.send(result)
 
-        
+
     if message.content.lower().startswith('.validgame'):
         try:
-            game_id = int(msg.lower().split('.invalidgame')[1].replace(" ", ""))
+            game_id = int(msg.lower().split('.validgame')[1].replace(" ", ""))
         except:
             await message.channel.send('Error reading input. Provide a game id number.')
             return
