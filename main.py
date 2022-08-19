@@ -381,6 +381,7 @@ async def get_stats(discord_id):
     ar = df.to_numpy()
     out = ["{: <5} {: <25} {: <4} {: <4} {: <4}".format(*cols)]
     if len(df.index) == 0:
+        out = out[0]
         embed = discord.Embed(color=0x70ac64, description=f"```{out}```")
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
         return embed
@@ -389,7 +390,7 @@ async def get_stats(discord_id):
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
-    
+
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
     del df
     return embed
@@ -404,6 +405,7 @@ async def get_ladder(season):
     ar = df.to_numpy()
     out = ["{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols)]
     if len(df.index) == 0:
+        out = out[0]
         return discord.Embed(color=0x70ac64, description=f"```{out}```")
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
