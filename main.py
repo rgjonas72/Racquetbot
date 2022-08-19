@@ -115,9 +115,7 @@ async def output_game(game_id):
                           description=f'Score: <@{player1}> {player1_score}-{player2_score} <@{player2}>',
                           color=0x70ac64)
     if season != await get_current_unranked_season():
-        player1_rank = await get_player_rank(player1, season)
-        player2_rank = await get_player_rank(player2, season)
-        embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
+        embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})**\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})**", inline=False)
         if invalid == 1:
            embed.set_footer(text='❌ Game invalid')
     cursor.close()
@@ -156,8 +154,6 @@ async def validate_game(game_id):
         loser_delta = player1_elo_delta
         winner_delta = player2_elo_delta
 
-    print(winner, loser)
-
     cursor.execute('update `' + season + '` set elo=elo+%s, wins=wins+1 where discord_id=%s', (winner_delta, winner))
     cursor.execute('update `' + season + '` set elo=elo+%s, losses=losses+1 where discord_id=%s', (loser_delta, loser))
     cursor.execute('update game_history set invalid=0 where gameid=%s', (game_id,))
@@ -180,8 +176,6 @@ async def invalidate_game(game_id):
         loser = player1
         loser_delta = player1_elo_delta
         winner_delta = player2_elo_delta
-
-    print(winner, loser)
 
     cursor.execute('update `' + season + '` set elo=elo-%s, wins=wins-1 where discord_id=%s', (winner_delta, winner))
     cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (loser_delta, loser))
