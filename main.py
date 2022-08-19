@@ -278,7 +278,7 @@ async def pretty_to_string(df):
     mn = np.min(indices)
     newlines = []
     for l in lines:
-        newlines.append(l[mn:len(l)])
+        newlines.append(l[mn:len(l)].rstrip())
 
     return '\n'.join(newlines)
 
