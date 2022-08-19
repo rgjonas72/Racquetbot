@@ -278,17 +278,18 @@ async def get_stats(discord_id):
     rank = await get_player_rank(discord_id, season)
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
     df.insert(0, 'Rank', rank)
-    print(df.head())
-
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
-    name = await get_player_name(discord_id)
-
-    #embed = discord.Embed(title=f"{name}'s stats", color=0x70ac64)
     embed = discord.Embed(color=0x70ac64)
 
-    cols, data = df.to_string(index=False, justify="left", col_space=[3,12,4,3,3]).split('\n', 1).replace('\n', '\n ').split('\n', 1)
+    name = await get_player_name(discord_id)
+    cols = df.columns
+    ar = df.to_numpy()
+    out = ["{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols)]
+    for row in ar:
+        out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
+    header, data = '\n'.join(out).split('\n', 1)
+    embed.add_field(name=f"{name} stats", value=f"```{header}``` ```\n{data}```", inline=False)
 
-    embed.add_field(name=f"{name} stats", value=f"```{cols}``` ```\n{data}```", inline=False)
     return embed
 
 
@@ -304,15 +305,26 @@ async def get_ladder(season):
 
     cols = df.columns
     ar = df.to_numpy()
-    out = []
-    out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols))
+    out = ["{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols)]
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    embed.add_field(name=f"test", value=f"```{header}``` ```\n{data}```", inline=False)
+    embed.add_field(name=f"{season} Ladder", value=f"```{header}``` ```\n{data}```", inline=False)
 
     return embed
 
+
+async def check_score(winner_score, loser_score):
+    if int(winner_score) < 11:
+        return "Winner must have at least 11 points."
+
+    if int(winner_score) < int(loser_score):
+        return "Winner must have a higher score."
+
+    if int(winner_score) >= 11 and int(winner_score) - int(loser_score) != 2:
+        return "Invalid score. Must win by 2."
+
+    return None
 
 @client.event
 async def on_ready():
@@ -354,9 +366,11 @@ async def on_message(message):
             await message.channel.send('Error reading score. Provide score in format: 11-3')
             return
 
-        if int(winner_score) < int(loser_score):
-            await message.channel.send("Winner must have a higher score.")
+        check = await check_score(winner_score, loser_score)
+        if check is not None:
+            await message.channel.send(check)
             return
+
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_unranked_season()
@@ -378,9 +392,11 @@ async def on_message(message):
             await message.channel.send('Error reading score. Provide score in format: 11-3')
             return
 
-        if int(winner_score) < int(loser_score):
-            await message.channel.send("Winner must have a higher score.")
+        check = await check_score(winner_score, loser_score)
+        if check is not None:
+            await message.channel.send(check)
             return
+
         # Winner is first player mentioned, loser is second
         winner, loser = mentions
         current_season = await get_current_ranked_season()
@@ -397,6 +413,8 @@ async def on_message(message):
         else:
             id = str(message.author.id)
         embed = await get_stats(id)
+        name = await get_player_name(id)
+        embed.set_author(name=f"{name} Stats", icon_url=message.author.avatar.url)
         await message.channel.send(embed=embed)
         ### Get stats function here
 
@@ -465,8 +483,9 @@ async def on_message(message):
             await message.channel.send('Error reading input. Provide: <game id>,<score>')
             return
 
-        if int(winner_score) < int(loser_score):
-            await message.channel.send("Winner must have a higher score.")
+        check = await check_score(winner_score, loser_score)
+        if check is not None:
+            await message.channel.send(check)
             return
 
         embed = await reverse_game(game_id, winner_score, loser_score)
