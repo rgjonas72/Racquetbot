@@ -114,7 +114,7 @@ async def output_game(game_id):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}",
                           description=f'Score: <@{player1}> {player1_score}-{player2_score} <@{player2}>',
                           color=0x70ac64)
-    if season != await get_current_unranked_season():  
+    if season != await get_current_unranked_season():
         player1_rank = await get_player_rank(player1, season)
         player2_rank = await get_player_rank(player2, season)
         embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
@@ -552,14 +552,14 @@ async def on_message(message):
 
         embed = await reverse_game(game_id, winner_score, loser_score)
         await message.channel.send(embed=embed)
-        
+
     if message.content.lower().startswith('.game'):
         try:
-            game_id = int(msg.lower().split('.game', 1)[1]).replace(" ", "")
+            game_id = int(msg.lower().split('.game')[1].replace(" ", ""))
         except:
             await message.channel.send('Error reading input. Provide a game id number.')
             return
-        
+
         embed = await output_game(game_id)
         await message.channel.send(embed=embed)
 
