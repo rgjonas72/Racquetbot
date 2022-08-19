@@ -273,6 +273,23 @@ async def get_current_unranked_season():
     return season[0]
 
 
+async def get_versus_stats(player1, player2):
+    season = await get_current_ranked_season()
+    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id=%s and player2_id=%s ) or player1_id=%s and player2_id=%s', (player1, player2, player2, player1,))
+    print(df)
+
+    cols = df.columns
+    ar = df.to_numpy()
+    out = ["{: <5} {: <25} {: <4} {: <4} {: <4}".format(*cols)]
+    for row in ar:
+        out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
+    header, data = '\n'.join(out).split('\n', 1)
+    header = '+' + header + '+'
+
+    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    return embed
+
+
 async def get_stats(discord_id):
     season = await get_current_ranked_season()
     rank = await get_player_rank(discord_id, season)
@@ -283,11 +300,10 @@ async def get_stats(discord_id):
     name = await get_player_name(discord_id)
     cols = df.columns
     ar = df.to_numpy()
-    out = ["{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols)]
+    out = ["{: <5} {: <25} {: <4} {: <4} {: <4}".format(*cols)]
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    header = '+' + header + '+'
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     user = await client.fetch_user(str(discord_id))
@@ -306,7 +322,6 @@ async def get_ladder(season):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    header = '+' + header + '+'
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     user = await client.fetch_user("1008939447439609907")
@@ -411,8 +426,14 @@ async def on_message(message):
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
-        if len(mentions) > 1:
+        if len(mentions) > 2:
             await message.channel.send('Can only mention one player.')
+        elif len(mentions) == 2:
+            player1 = str(mentions[0].id)
+            player2 = str(mentions[1].id)
+            embed = await get_versus_stats(player1, player2)
+            await message.channel.send(embed=embed)
+            return
         elif len(mentions) == 1:
             id = str(mentions[0].id)
         else:
