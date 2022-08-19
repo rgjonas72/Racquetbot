@@ -257,8 +257,8 @@ async def get_ladder(season):
 
     cols = df.columns
     ar = df.to_numpy()
-    ar.insert(cols)
     out = []
+    out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols))
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
