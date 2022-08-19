@@ -285,7 +285,7 @@ async def pretty_to_string(df):
 
 async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
-    df = pd.read_sql(f'select rank() over (order by elo desc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
+    df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
 
