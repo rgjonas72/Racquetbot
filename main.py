@@ -279,7 +279,6 @@ async def get_stats(discord_id):
     df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
     df.insert(0, 'Rank', rank)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
-    embed = discord.Embed(color=0x70ac64)
 
     name = await get_player_name(discord_id)
     cols = df.columns
@@ -288,8 +287,12 @@ async def get_stats(discord_id):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    embed.add_field(name='\u1CBC', value=f"```{header}``` ```\n{data}```", inline=False)
+
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    user = client.get_user(discord_id)
+    user_name = user.name
+    profilePicture = user.avatar_url
+    embed.set_author(name=user_name, icon_url=profilePicture)
     return embed
 
 
@@ -413,8 +416,6 @@ async def on_message(message):
         else:
             id = str(message.author.id)
         embed = await get_stats(id)
-        name = await get_player_name(id)
-        embed.set_author(name=f"\u1CBC", icon_url=message.author.avatar_url)
         await message.channel.send(embed=embed)
         ### Get stats function here
 
