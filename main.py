@@ -119,7 +119,7 @@ async def output_game(game_id):
         player2_rank = await get_player_rank(player2, season)
         embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
         if invalid == 1:
-           embed.set_footer(text='<:x:1010320491527016568> Game invalid')
+           embed.set_footer(text='❌ Game invalid')
     cursor.close()
     return embed
 
