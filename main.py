@@ -134,7 +134,7 @@ async def reverse_game(game_id, winner_score, loser_score):
     cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (new_winner_elo_delta, new_winner))
     # 2. Run through Elo Rating function with new elo
 
-    embed = EloRating(new_winner, new_loser, season, winner_score, loser_score, update=game_id)
+    embed = await EloRating(new_winner, new_loser, season, winner_score, loser_score, update=game_id)
     return embed
 
 
