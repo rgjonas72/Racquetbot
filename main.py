@@ -3,9 +3,7 @@ import os
 import math
 import mysql.connector
 import pandas as pd
-from table2ascii import table2ascii as t2a, PresetStyle
 import numpy as np
-import re
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -33,10 +31,6 @@ async def get_k_value(elo, ngames):
 
     k = 32
 
-    # number of games played to calculate variable K value
-    # test numbers
-    noob_games = 10
-
     # check what elo range player 1 is in
     if elo >= k_thresholda:
         k = k_valued
@@ -48,7 +42,7 @@ async def get_k_value(elo, ngames):
         k = k_valueb
 
     # If the player has less than x number of noob game count, make them earn more
-    if ngames <= noob_games:
+    if ngames <= noob_game_count:
         k = k_valuea
 
     return k
@@ -66,9 +60,9 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     cursor.execute('select elo from `' + season + '` where discord_id=%s', (loser,))
     loser_elo = cursor.fetchone()[0]
     # Get both players number of games played
-    cursor.execute('select count(*) from game_history where (player1_id=%s or player2_id=%s) and season=%s', (winner, winner, season,))
+    cursor.execute('select count(*) from game_history where (player1_id=%s or player2_id=%s) and season=%s and invalid=0', (winner, winner, season,))
     winner_games = cursor.fetchone()[0]
-    cursor.execute('select count(*) from game_history where (player1_id=%s or player2_id=%s) and season=%s', (loser, loser, season,))
+    cursor.execute('select count(*) from game_history where (player1_id=%s or player2_id=%s) and season=%s and invalid=0', (loser, loser, season,))
     loser_games = cursor.fetchone()[0]
     # Set k values ### Will be based off # of games
     winner_k = await get_k_value(winner_elo, winner_games)
@@ -82,6 +76,8 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     winner_new_elo = winner_elo + winner_delta
 
     loser_delta = math.ceil(loser_k * (0 - loser_expected_outcome))
+    if loser_score == 0:
+        loser_delta = loser_delta * 3
     loser_new_elo = loser_elo + loser_delta
 
     # Insert game into database
@@ -96,7 +92,7 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
                          winner, winner_name, winner_score, loser_score, update,))
         game_id = update
     else:
-        cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s)',
+        cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s, 0)',
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
         game_id = cursor.lastrowid
@@ -105,6 +101,26 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     return embed
 
 
+async def output_game(game_id):
+    cursor = mydb.cursor()
+    cursor.execute('select * from game_history where gameid=%s', (game_id,))
+    result = cursor.fetchone()
+    if result is None:
+         return None
+    print(result)
+    gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
+        date, winner, winner_name, player1_score, player2_score, season, invalid = result
+    embed = discord.Embed(title=f"Racquetball game id #{game_id}",
+                          description=f'Score: <@{player1}> {player1_score}-{player2_score} <@{player2}>', color=0x70ac64)
+    player1_rank = await get_player_rank(player1, season)
+    player2_rank = await get_player_rank(player2, season)
+    embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
+    if invalid == 1:
+        embed.set_footer(text=':x: Game invalid :x:')
+    cursor.close()
+    return embed
+
+'''
 async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     winner_rank = await get_player_rank(winner, season)
@@ -112,7 +128,7 @@ async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo,
     embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** | #{winner_rank}\n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})** | #{loser_rank}", inline=False)
 
     return embed
-
+'''
 
 async def output_game_unranked(game_id, winner, loser, winner_score, loser_score, season):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
@@ -121,7 +137,7 @@ async def output_game_unranked(game_id, winner, loser, winner_score, loser_score
 
 async def reverse_game(game_id, winner_score, loser_score):
     cursor = mydb.cursor()
-    cursor.execute('select * from game_history where gameid=%s', (game_id,))
+    cursor.execute('select * from game_history where gameid=%s and invalid=0', (game_id,))
     result = cursor.fetchone()
     if result is None:
         return None
@@ -140,8 +156,6 @@ async def reverse_game(game_id, winner_score, loser_score):
     return embed
 
 
-
-
 # Parameters: ID of winner and loser, and string of queue type
 # Queue type either 'Ranked' or 'Friendly'
 async def input_unranked_win(winner, loser, season, winner_score, loser_score):
@@ -152,7 +166,7 @@ async def input_unranked_win(winner, loser, season, winner_score, loser_score):
     cursor.execute('update `' + season + '` set losses=losses+1 where discord_id=%s', (loser,))
     winner_name = await get_player_name(winner)
     loser_name = await get_player_name(loser)
-    cursor.execute('insert into game_history values (NULL, %s, %s, 0, 0, 0, %s, %s, 0, 0, 0, now(), %s, %s, %s, %s, %s)',
+    cursor.execute('insert into game_history values (NULL, %s, %s, 0, 0, 0, %s, %s, 0, 0, 0, now(), %s, %s, %s, %s, %s, 0)',
                    (winner, winner_name, loser, loser_name, winner, winner_name, winner_score, loser_score, season,))
     game_id = cursor.lastrowid
     cursor.close()
@@ -275,7 +289,7 @@ async def get_current_unranked_season():
 
 async def get_versus_stats(id1, id2):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id={id1} and player2_id={id2} ) or player1_id={id2} and player2_id={id1}', mydb)
+    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}) and invalid=0', mydb)
     print(df)
     counts = df['winner_id'].value_counts()
     id1_wins = counts[id1]
