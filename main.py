@@ -272,7 +272,7 @@ async def pretty_to_string(df):
     non_header_lines = lines[1:len(lines)]
 
     for line in non_header_lines:
-        index = find_index_in_line(line)
+        index = await find_index_in_line(line)
         indices.append(index)
 
     mn = np.min(indices)
