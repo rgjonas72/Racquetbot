@@ -295,13 +295,6 @@ async def get_versus_stats(id1, id2):
     id1_average_points = round(id1_total_points / len(df.index), 2)
     id2_average_points = round(id2_total_points / len(df.index), 2)
 
-    cols = df.columns
-    ar = df.to_numpy()
-    out = ["{: <5} {: <25} {: <4} {: <4} {: <4}".format(*cols)]
-    for row in ar:
-        out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
-    header, data = '\n'.join(out).split('\n', 1)
-
     #embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     id1_name = await get_player_name(id1)
     id2_name = await get_player_name(id2)
@@ -309,6 +302,7 @@ async def get_versus_stats(id1, id2):
     embed.add_field(name="Wins per player", value=f'{id1_name}: {id1_wins}, {id2_name}: {id2_wins}')
     embed.add_field(name="Score per player", value=f'{id1_name}: {id1_wins}, {id1_total_points}: {id2_total_points}')
     embed.add_field(name="Average score per player", value=f'{id1_name}: {id1_average_points}, {id2_name}: {id2_average_points}')
+    del [df, df_id1_wins_p1, df_id2_wins_p1, df_id1_wins_p2, df_id2_wins_p2]
     return embed
 
 
