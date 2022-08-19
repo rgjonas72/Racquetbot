@@ -147,7 +147,7 @@ async def validate_game(game_id):
     if result is None:
         return 'Game not found or already valid.'
     player1, player1_elo_delta, player2, player2_elo_delta, winner, season = result
-    if winner != player1:
+    if winner == player1:
         loser = player2
         loser_delta = player2_elo_delta
         winner_delta = player1_elo_delta
@@ -155,6 +155,8 @@ async def validate_game(game_id):
         loser = player1
         loser_delta = player1_elo_delta
         winner_delta = player2_elo_delta
+
+    print(winner, loser)
 
     cursor.execute('update `' + season + '` set elo=elo+%s, wins=wins+1 where discord_id=%s', (winner_delta, winner))
     cursor.execute('update `' + season + '` set elo=elo+%s, losses=losses+1 where discord_id=%s', (loser_delta, loser))
@@ -170,7 +172,7 @@ async def invalidate_game(game_id):
     if result is None:
         return 'Game not found or already invalid.'
     player1, player1_elo_delta, player2, player2_elo_delta, winner, season = result
-    if winner != player1:
+    if winner == player1:
         loser = player2
         loser_delta = player2_elo_delta
         winner_delta = player1_elo_delta
@@ -178,6 +180,8 @@ async def invalidate_game(game_id):
         loser = player1
         loser_delta = player1_elo_delta
         winner_delta = player2_elo_delta
+
+    print(winner, loser)
 
     cursor.execute('update `' + season + '` set elo=elo-%s, wins=wins-1 where discord_id=%s', (winner_delta, winner))
     cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (loser_delta, loser))
