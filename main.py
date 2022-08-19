@@ -142,7 +142,7 @@ async def output_game_unranked(game_id, winner, loser, winner_score, loser_score
 
 async def validate_game(game_id):
     cursor = mydb.cursor()
-    cursor.execute('select player1, player1_elo_delta, player2, player2_elo_delta, winner, season from game_history where gameid=%s and invalid=1', (game_id,))
+    cursor.execute('select player1_id, player1_elo_delta, player2_id, player2_elo_delta, winner_id, season from game_history where gameid=%s and invalid=1', (game_id,))
     result = cursor.fetchone()
     if result is None:
         return 'Game not found or already valid.'
@@ -165,7 +165,7 @@ async def validate_game(game_id):
 
 async def invalidate_game(game_id):
     cursor = mydb.cursor()
-    cursor.execute('select player1, player1_elo_delta, player2, player2_elo_delta, winner, season from game_history where gameid=%s and invalid=0', (game_id,))
+    cursor.execute('select player1_id, player1_elo_delta, player2_id, player2_elo_delta, winner_id, season from game_history where gameid=%s and invalid=0', (game_id,))
     result = cursor.fetchone()
     if result is None:
         return 'Game not found or already invalid.'
@@ -178,7 +178,7 @@ async def invalidate_game(game_id):
         loser = player1
         loser_delta = player1_elo_delta
         winner_delta = player2_elo_delta
-        
+
     cursor.execute('update `' + season + '` set elo=elo-%s, wins=wins-1 where discord_id=%s', (winner_delta, winner))
     cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (loser_delta, loser))
     cursor.execute('update game_history set invalid=1 where gameid=%s', (game_id,))
@@ -628,7 +628,7 @@ async def on_message(message):
 
         result = await invalidate_game(game_id)
         await message.channel.send(result)
-        
+
         
     if message.content.lower().startswith('.validgame'):
         try:
