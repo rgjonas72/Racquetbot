@@ -59,7 +59,7 @@ async def get_k_value(elo, ngames):
 # K is a constant.
 # d determines whether
 # Player A wins or Player B.
-async def EloRating(winner, loser, season, winner_score, loser_score):
+async def EloRating(winner, loser, season, winner_score, loser_score, update=None):
     # Get elo for both players
     cursor.execute('select elo from `' + season + '` where discord_id=%s', (winner,))
     winner_elo = cursor.fetchone()[0]
@@ -87,18 +87,24 @@ async def EloRating(winner, loser, season, winner_score, loser_score):
     # Insert game into database
     cursor.execute('update `' + season + '` set elo=%s, wins=wins+1 where discord_id=%s', (winner_new_elo, winner,))
     cursor.execute('update `' + season + '` set elo=%s, losses=losses+1 where discord_id=%s', (loser_new_elo, loser,))
+
     winner_name = await get_player_name(winner)
     loser_name = await get_player_name(loser)
-    cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s)',
+    if update is not None:
+        cursor.execute('update game_history set player1=%s, player1_name=%s, player1_elo=%s, player1_elo_delta=%s, player1_elo_after=%s, player2=%s, player2_name=%s, player2_elo=%s, player2_elo_delta=%s, player2_elo_after=%s, winner=%s, winner_name=%s, player1_score=%s, player2_score=%s where gameid=%s',
+                       (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
+                         winner, winner_name, winner_score, loser_score, update,))
+    else:
+        cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
 
-    game_id = cursor.lastrowid
+    game_id = cursor.lastrowid if update is not None else update
     embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season)
     return embed
 
 
-async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season):
+async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season, update=None):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     winner_rank = await get_player_rank(winner, season)
     loser_rank = await get_player_rank(loser, season)
@@ -119,8 +125,17 @@ async def reverse_game(game_id, winner_score, loser_score):
         return None
     gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
     date, winner, winner_name, player1_score, player2_score, season = result
-    print(result)
-    return None
+    new_winner = player1 if player1 != winner else player2
+    new_loser = player1 if player1 == winner else player2
+    new_winner_elo_delta = player1_elo_delta if player1 == new_winner else player2_elo_delta
+    new_loser_elo_delta = player1_elo_delta if player1 != new_winner else player2_elo_delta
+    # 1. Subtract elo deltas per user
+    cursor.execute('update `' + season + '` set elo=elo-%s, wins=wins-1 where discord_id=%s', (new_loser_elo_delta, new_loser))
+    cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (new_winner_elo_delta, new_winner))
+    # 2. Run through Elo Rating function with new elo
+
+    embed = EloRating(new_winner, new_loser, season, winner_score, loser_score, update=game_id)
+    return embed
 
 
 
@@ -429,7 +444,8 @@ async def on_message(message):
             await message.channel.send("Winner must have a higher score.")
             return
 
-        await reverse_game(game_id, winner_score, loser_score)
+        embed = await reverse_game(game_id, winner_score, loser_score)
+        await message.channel.send(embed=embed)
 
 # client.run(os.environ['TOKEN'])
 TOKEN = open("/repo/discord_token.txt", "r").read()
