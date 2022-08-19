@@ -140,6 +140,51 @@ async def output_game_unranked(game_id, winner, loser, winner_score, loser_score
 '''
 
 
+async def validate_game(game_id):
+    cursor = mydb.cursor()
+    cursor.execute('select player1, player1_elo_delta, player2, player2_elo_delta, winner, season from game_history where gameid=%s and invalid=1', (game_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return 'Game not found or already valid.'
+    player1, player1_elo_delta, player2, player2_elo_delta, winner, season = result
+    if winner != player1:
+        loser = player2
+        loser_delta = player2_elo_delta
+        winner_delta = player1_elo_delta
+    else:
+        loser = player1
+        loser_delta = player1_elo_delta
+        winner_delta = player2_elo_delta
+
+    cursor.execute('update `' + season + '` set elo=elo+%s, wins=wins+1 where discord_id=%s', (winner_delta, winner))
+    cursor.execute('update `' + season + '` set elo=elo+%s, losses=losses+1 where discord_id=%s', (loser_delta, loser))
+    cursor.execute('update game_history set invalid=0 where gameid=%s', (game_id,))
+    cursor.close()
+    return 'Game validated.'
+
+
+async def invalidate_game(game_id):
+    cursor = mydb.cursor()
+    cursor.execute('select player1, player1_elo_delta, player2, player2_elo_delta, winner, season from game_history where gameid=%s and invalid=0', (game_id,))
+    result = cursor.fetchone()
+    if result is None:
+        return 'Game not found or already invalid.'
+    player1, player1_elo_delta, player2, player2_elo_delta, winner, season = result
+    if winner != player1:
+        loser = player2
+        loser_delta = player2_elo_delta
+        winner_delta = player1_elo_delta
+    else:
+        loser = player1
+        loser_delta = player1_elo_delta
+        winner_delta = player2_elo_delta
+        
+    cursor.execute('update `' + season + '` set elo=elo-%s, wins=wins-1 where discord_id=%s', (winner_delta, winner))
+    cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (loser_delta, loser))
+    cursor.execute('update game_history set invalid=1 where gameid=%s', (game_id,))
+    cursor.close()
+    return 'Game invalidated.'
+
 async def reverse_game(game_id, winner_score, loser_score):
     cursor = mydb.cursor()
     cursor.execute('select * from game_history where gameid=%s and invalid=0', (game_id,))
@@ -433,7 +478,10 @@ async def on_message(message):
         winner, loser = mentions
         current_season = await get_current_unranked_season()
         embed = await input_unranked_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
-        await message.channel.send(embed=embed)
+        if embed is None:
+            await message.channel.send('Game id does not exist.')
+        else:
+            await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.ranked'):
         # Make it so user can't @ themselves twice...
@@ -459,8 +507,10 @@ async def on_message(message):
         winner, loser = mentions
         current_season = await get_current_ranked_season()
         embed = await input_win(str(winner.id), str(loser.id), current_season, int(winner_score), int(loser_score))
-        await message.channel.send(embed=embed)
-        #await message.channel.send('Game input.')
+        if embed is None:
+            await message.channel.send('Game id does not exist.')
+        else:
+            await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
@@ -551,7 +601,10 @@ async def on_message(message):
             return
 
         embed = await reverse_game(game_id, winner_score, loser_score)
-        await message.channel.send(embed=embed)
+        if embed is None:
+            await message.channel.send('Game id does not exist.')
+        else:
+            await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.game'):
         try:
@@ -561,7 +614,31 @@ async def on_message(message):
             return
 
         embed = await output_game(game_id)
-        await message.channel.send(embed=embed)
+        if embed is None:
+            await message.channel.send('Game id does not exist.')
+        else:
+            await message.channel.send(embed=embed)
+
+    if message.content.lower().startswith('.invalidgame'):
+        try:
+            game_id = int(msg.lower().split('.invalidgame')[1].replace(" ", ""))
+        except:
+            await message.channel.send('Error reading input. Provide a game id number.')
+            return
+
+        result = await invalidate_game(game_id)
+        await message.channel.send(result)
+        
+        
+    if message.content.lower().startswith('.validgame'):
+        try:
+            game_id = int(msg.lower().split('.invalidgame')[1].replace(" ", ""))
+        except:
+            await message.channel.send('Error reading input. Provide a game id number.')
+            return
+
+        result = await validate_game(game_id)
+        await message.channel.send(result)
 
 # client.run(os.environ['TOKEN'])
 TOKEN = open("/repo/discord_token.txt", "r").read()
