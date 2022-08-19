@@ -414,7 +414,7 @@ async def on_message(message):
             id = str(message.author.id)
         embed = await get_stats(id)
         name = await get_player_name(id)
-        embed.set_author(name=f"{name} Stats", icon_url=message.author.avatar_url)
+        embed.set_author(name='\u200B', icon_url=message.author.avatar_url)
         await message.channel.send(embed=embed)
         ### Get stats function here
 
