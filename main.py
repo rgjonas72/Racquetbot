@@ -273,10 +273,23 @@ async def get_current_unranked_season():
     return season[0]
 
 
-async def get_versus_stats(player1, player2):
+async def get_versus_stats(id1, id2):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id={player1} and player2_id={player2} ) or player1_id={player2} and player2_id={player1}', mydb)
+    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id={id1} and player2_id={id2} ) or player1_id={id2} and player2_id={id1}', mydb)
     print(df)
+    counts = df['winner_id'].value_counts()
+    id1_wins = counts[id1]
+    id2_wins = counts[id2]
+    # Get df's of
+    df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id' == id1])]
+    df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id' == id2])]
+    df_id1_wins_p2 = df.loc[(df['winner_id'] == id1) & (df['player2_id' == id1])]
+    df_id2_wins_p2 = df.loc[(df['winner_id'] == id2) & (df['player2_id' == id2])]
+    #id1_winning_scores = df.loc[(df['winner_id'] ==  id1)]
+    id1_total_points = df_id1_wins_p1['player1_score'].sum() + df_id1_wins_p2['player2_score'].sum() + df_id2_wins_p1['player2_score'].sum() + df_id2_wins_p2['player1_score'].sum()
+    id2_total_points = df_id1_wins_p1['player2_score'].sum() + df_id1_wins_p2['player1_score'].sum() + df_id2_wins_p1['player1_score'].sum() + df_id2_wins_p2['player2_score'].sum()
+    id1_average_points = id1_total_points / len(df.index)
+    id2_average_points = id2_total_points / len(df.index)
 
     cols = df.columns
     ar = df.to_numpy()
@@ -284,9 +297,14 @@ async def get_versus_stats(player1, player2):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    header = '+' + header + '+'
 
-    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    #embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    id1_name = await get_player_name(id1)
+    id2_name = await get_player_name(id2)
+    embed = discord.Embed(color=0x70ac64, title=f'Stats between {id1_name} and {id2_name}')
+    embed.add_field(name="Wins per player", value=f'{id1_name}: {id1_wins}, {id2_name}: {id2_wins}')
+    embed.add_field(name="Score per player", value=f'{id1_name}: {id1_wins}, {id1_total_points}: {id2_total_points}')
+    embed.add_field(name="Average score per player", value=f'{id1_name}: {id1_average_points}, {id2_name}: {id2_average_points}')
     return embed
 
 
