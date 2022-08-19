@@ -275,7 +275,7 @@ async def get_current_unranked_season():
 
 async def get_versus_stats(player1, player2):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id=%s and player2_id=%s ) or player1_id=%s and player2_id=%s', (player1, player2, player2, player1,))
+    df = pd.read_sql(f'select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where (player1_id={player1} and player2_id={player2} ) or player1_id={player2} and player2_id={player1}', mydb)
     print(df)
 
     cols = df.columns
