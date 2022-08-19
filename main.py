@@ -112,12 +112,14 @@ async def output_game(game_id):
     gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
         date, winner, winner_name, player1_score, player2_score, season, invalid = result
     embed = discord.Embed(title=f"Racquetball game id #{game_id}",
-                          description=f'Score: <@{player1}> {player1_score}-{player2_score} <@{player2}>', color=0x70ac64)
-    player1_rank = await get_player_rank(player1, season)
-    player2_rank = await get_player_rank(player2, season)
-    embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
-    if invalid == 1:
-        embed.set_footer(text=':x: Game invalid :x:')
+                          description=f'Score: <@{player1}> {player1_score}-{player2_score} <@{player2}>',
+                          color=0x70ac64)
+    if season != await get_current_unranked_season():  
+        player1_rank = await get_player_rank(player1, season)
+        player2_rank = await get_player_rank(player2, season)
+        embed.add_field(name=f"__Elo Changes__", value=f"<@{player1}> {player1_elo} --> {player1_elo_after} **(+{player1_elo_delta})** | #{player1_rank}\n<@{player2}> {player2_elo} --> {player2_elo_after} **({player2_elo_delta})** | #{player2_rank}", inline=False)
+        if invalid == 1:
+           embed.set_footer(text=':x: Game invalid :x:')
     cursor.close()
     return embed
 
@@ -131,9 +133,11 @@ async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo,
     return embed
 '''
 
+'''
 async def output_game_unranked(game_id, winner, loser, winner_score, loser_score, season):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     return embed
+'''
 
 
 async def reverse_game(game_id, winner_score, loser_score):
@@ -171,7 +175,8 @@ async def input_unranked_win(winner, loser, season, winner_score, loser_score):
                    (winner, winner_name, loser, loser_name, winner, winner_name, winner_score, loser_score, season,))
     game_id = cursor.lastrowid
     cursor.close()
-    embed = await output_game_unranked(game_id, winner, loser, winner_score, loser_score, season)
+    #embed = await output_game_unranked(game_id, winner, loser, winner_score, loser_score, season)
+    embed = await output_game(game_id)
     return embed
 
 async def check_player_status_unranked(id, season):
@@ -315,7 +320,7 @@ async def get_versus_stats(id1, id2):
     id2_name = await get_player_name(id2)
     embed = discord.Embed(color=0x70ac64, title=f'Stats between {id1_name} and {id2_name}')
     embed.add_field(name="Wins per player", value=f'{id1_name}: {id1_wins}, {id2_name}: {id2_wins}')
-    embed.add_field(name="Score per player", value=f'{id1_name}: {id1_total_points}, {id1_total_points}: {id2_total_points}')
+    embed.add_field(name="Score per player", value=f'{id1_name}: {id1_total_points}, {id2_name}: {id2_total_points}')
     embed.add_field(name="Average score per player", value=f'{id1_name}: {id1_average_points}, {id2_name}: {id2_average_points}')
     del [df, df_id1_wins_p1, df_id2_wins_p1, df_id1_wins_p2, df_id2_wins_p2]
     return embed
@@ -354,7 +359,6 @@ async def get_ladder(season):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    new_data = data = data.split('\n')
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     user = await client.fetch_user("1008939447439609907")
@@ -547,6 +551,16 @@ async def on_message(message):
             return
 
         embed = await reverse_game(game_id, winner_score, loser_score)
+        await message.channel.send(embed=embed)
+        
+    if message.content.lower().startswith('.game'):
+        try:
+            game_id = int(msg.lower().split('.game', 1)[1]).replace(" ", "")
+        except:
+            await message.channel.send('Error reading input. Provide a game id number.')
+            return
+        
+        embed = await output_game(game_id)
         await message.channel.send(embed=embed)
 
 # client.run(os.environ['TOKEN'])
