@@ -97,7 +97,8 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
                     winner, winner_name, winner_score, loser_score, season,))
         game_id = cursor.lastrowid
     cursor.close()
-    embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season)
+    #embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season)
+    embed = await output_game(game_id)
     return embed
 
 
