@@ -91,7 +91,7 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     winner_name = await get_player_name(winner)
     loser_name = await get_player_name(loser)
     if update is not None:
-        cursor.execute('update game_history set player1_id=%s, player1_name=%s, player1_elo=%s, player1_elo_delta=%s, player1_elo_after=%s, player2_id=%s, player2_name=%s, player2_elo=%s, player2_elo_delta=%s, player2_elo_after=%s, winner=%s, winner_name=%s, player1_score=%s, player2_score=%s where gameid=%s',
+        cursor.execute('update game_history set player1_id=%s, player1_name=%s, player1_elo=%s, player1_elo_delta=%s, player1_elo_after=%s, player2_id=%s, player2_name=%s, player2_elo=%s, player2_elo_delta=%s, player2_elo_after=%s, winner_id=%s, winner_name=%s, player1_score=%s, player2_score=%s where gameid=%s',
                        (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                          winner, winner_name, winner_score, loser_score, update,))
     else:
