@@ -14,9 +14,6 @@ mydb = mysql.connector.connect(
     database = "racquetbot"
 )
 
-blanks = r'^ *([a-zA-Z_0-9-]*) .*$'
-blanks_comp = re.compile(blanks)
-
 mydb.autocommit = True
 cursor = mydb.cursor()
 
@@ -248,70 +245,21 @@ async def get_stats(discord_id):
     return embed
 
 
-
-async def find_index_in_line(line):
-    index = 0
-    spaces = False
-    for ch in line:
-        if ch == ' ':
-            spaces = True
-        elif spaces:
-            break
-        index += 1
-    return index
-
-async def pretty_to_string(df):
-    lines = df.to_string().split('\n')
-    header = lines[0]
-    m = blanks_comp.match(header)
-    indices = []
-    if m:
-        st_index = m.start(1)
-        indices.append(st_index)
-
-    non_header_lines = lines[1:len(lines)]
-
-    for line in non_header_lines:
-        index = await find_index_in_line(line)
-        indices.append(index)
-
-    mn = np.min(indices)
-    newlines = []
-    for l in lines:
-        newlines.append(l[mn:len(l)].rstrip())
-
-    return '\n'.join(newlines)
-
-
 async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     embed = discord.Embed(color=0x70ac64)
-
-
-    cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
-
-
-    ####################
-    t = ['left', 'right', 'center', 'justify', 'justify - all', 'start', 'end', 'inherit', 'match - parent', 'initial', 'unset']
-    for i in t:
-        x = df.to_string(index=False, justify=i, col_space=[3,12,4,3,3])
-
-        cols, data = x.replace('\n', '\n ').split('\n', 1)
-        embed.add_field(name=f"{i}", value=f"```{cols}``` ```\n{data}```", inline=False)
-        embed.add_field(name=f"{i} v2", value=f"```{x}```", inline=False)
-    ####################
-    x = await pretty_to_string(df)
-    embed.add_field(name=f"test", value=f"```{x}```", inline=False)
+    
+    #cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
+    #embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
 
     ar = df.to_numpy()
     out = []
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     out_string = '\n'.join(out)
-    embed.add_field(name=f"test", value=f"```{out_string}```", inline=False)
+    embed.add_field(name=f"test", value=f"```{df.columns}``` ```\n{out_string}```", inline=False)
 
     return embed
 
