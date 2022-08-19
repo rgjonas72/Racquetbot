@@ -21,10 +21,10 @@ client = discord.Client(intents=intents)
 
 async def get_k_value(elo, ngames):
     # K value gradation based on elo
-    k_valuea, k_valueb, k_valuec, k_valued = [50, 32, 24, 16]
+    k_valuea, k_valueb, k_valuec, k_valued = [60, 43, 35, 28]
 
     # elo thresholds
-    k_thresholda, k_thresholdb = [2400, 2100]
+    k_thresholda, k_thresholdb = [1600, 1000]
 
     # number of games to get noob K value
     noob_game_count = 5
