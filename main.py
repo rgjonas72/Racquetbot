@@ -340,10 +340,8 @@ async def get_ladder(season):
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
     new_data = data = data.split('\n')
-    top_3 = new_data[:3]
-    rest = new_data[3:]
 
-    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{top_3}``` ```\n{rest}```")
+    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     user = await client.fetch_user("1008939447439609907")
     embed.set_author(name=f"{season} Ladder", icon_url=user.avatar_url)
     del df
