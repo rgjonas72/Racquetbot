@@ -257,11 +257,11 @@ async def get_ladder(season):
 
     cols = df.columns
     ar = df.to_numpy()
-    out = [[cols]]
+    out = [cols]
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    
+
     embed.add_field(name=f"test", value=f"```{header}``` ```\n{data}```", inline=False)
 
     return embed
