@@ -94,17 +94,19 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
         cursor.execute('update game_history set player1_id=%s, player1_name=%s, player1_elo=%s, player1_elo_delta=%s, player1_elo_after=%s, player2_id=%s, player2_name=%s, player2_elo=%s, player2_elo_delta=%s, player2_elo_after=%s, winner_id=%s, winner_name=%s, player1_score=%s, player2_score=%s where gameid=%s',
                        (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                          winner, winner_name, winner_score, loser_score, update,))
+        game_id = update
     else:
         cursor.execute('insert into game_history values (NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
+        game_id = cursor.lastrowid
 
-    game_id = cursor.lastrowid if update is not None else update
+    print(game_id)
     embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season)
     return embed
 
 
-async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season, update=None):
+async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season):
     embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
     winner_rank = await get_player_rank(winner, season)
     loser_rank = await get_player_rank(loser, season)
