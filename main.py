@@ -298,11 +298,6 @@ async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
-    embed = discord.Embed(color=0x70ac64)
-
-
-    #cols, data = df.to_string(index=False, col_space=[3,12,4,3,3]).replace('\n', '\n ').split('\n', 1)
-    #embed.add_field(name=f"{season} Ladder", value=f"```{cols}``` ```\n{data}```", inline=False)
 
     cols = df.columns
     ar = df.to_numpy()
@@ -310,8 +305,10 @@ async def get_ladder(season):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
-    embed.add_field(name=f"{season} Ladder", value=f"```{header}``` ```\n{data}```", inline=False)
 
+    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    user = await client.fetch_user("1008939447439609907")
+    embed.set_author(name=f"{season} Ladder", icon_url=user.avatar_url)
     return embed
 
 
