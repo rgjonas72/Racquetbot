@@ -289,7 +289,7 @@ async def get_stats(discord_id):
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
-    user = await client.fetch_user(str(id))
+    user = await client.fetch_user(str(discord_id))
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
     return embed
 
