@@ -190,7 +190,7 @@ async def reverse_game(game_id, winner_score, loser_score):
     if result is None:
         return None
     gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
-    date, winner, winner_name, player1_score, player2_score, season = result
+    date, winner, winner_name, player1_score, player2_score, season, invalid = result
     new_winner = player1 if player1 != winner else player2
     new_loser = player1 if player1 == winner else player2
     new_winner_elo_delta = player1_elo_delta if player1 == new_winner else player2_elo_delta
