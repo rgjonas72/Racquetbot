@@ -297,7 +297,7 @@ async def get_ladder(season):
     ####################
     t = ['left', 'right', 'center', 'justify', 'justify - all', 'start', 'end', 'inherit', 'match - parent', 'initial', 'unset']
     for i in t:
-        x = df.to_string(index=True, justify=i, col_space=[3,12,4,3,3])
+        x = df.to_string(index=False, justify=i, col_space=[3,12,4,3,3])
 
         cols, data = x.replace('\n', '\n ').split('\n', 1)
         embed.add_field(name=f"{i}", value=f"```{cols}``` ```\n{data}```", inline=False)
