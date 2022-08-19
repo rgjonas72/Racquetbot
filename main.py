@@ -359,7 +359,7 @@ async def check_score(winner_score, loser_score):
     if winner_score > 11 and winner_score - loser_score != 2:
         return "Invalid score. Must win by 2."
 
-    if winner_score == 11 and winner_score - loser_score >= 2:
+    if winner_score == 11 and winner_score - loser_score < 2:
         return "Invalid score. Must win by 2."
 
     return None
