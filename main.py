@@ -289,6 +289,7 @@ async def get_stats(discord_id):
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
     embed.add_field(name='\u200B', value=f"```{header}``` ```\n{data}```", inline=False)
+    embed.add_field(name=f"```{header}``` ```\n{data}```", value=f"----------", inline=False)
 
     return embed
 
@@ -310,6 +311,7 @@ async def get_ladder(season):
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
     embed.add_field(name=f"{season} Ladder", value=f"```{header}``` ```\n{data}```", inline=False)
+    embed.add_field(name=f"```{header}``` ```\n{data}```", value=f"----------", inline=False)
 
     return embed
 
