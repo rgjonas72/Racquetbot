@@ -281,10 +281,10 @@ async def get_versus_stats(id1, id2):
     id1_wins = counts[id1]
     id2_wins = counts[id2]
     # Get df's of
-    df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id' == id1])]
-    df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id' == id2])]
-    df_id1_wins_p2 = df.loc[(df['winner_id'] == id1) & (df['player2_id' == id1])]
-    df_id2_wins_p2 = df.loc[(df['winner_id'] == id2) & (df['player2_id' == id2])]
+    df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id'] == id1)]
+    df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id'] == id2)]
+    df_id1_wins_p2 = df.loc[(df['winner_id'] == id1) & (df['player2_id'] == id1)]
+    df_id2_wins_p2 = df.loc[(df['winner_id'] == id2) & (df['player2_id'] == id2)]
     #id1_winning_scores = df.loc[(df['winner_id'] ==  id1)]
     id1_total_points = df_id1_wins_p1['player1_score'].sum() + df_id1_wins_p2['player2_score'].sum() + df_id2_wins_p1['player2_score'].sum() + df_id2_wins_p2['player1_score'].sum()
     id2_total_points = df_id1_wins_p1['player2_score'].sum() + df_id1_wins_p2['player1_score'].sum() + df_id2_wins_p1['player1_score'].sum() + df_id2_wins_p2['player2_score'].sum()
