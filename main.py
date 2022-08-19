@@ -289,7 +289,7 @@ async def get_stats(discord_id):
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
     embed.add_field(name='\u1CBC', value=f"```{header}``` ```\n{data}```", inline=False)
-
+    embed = discord.Embed(color=0x70ac64, desciption=f"```{header}``` ```\n{data}```")
     return embed
 
 
