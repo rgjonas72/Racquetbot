@@ -332,15 +332,18 @@ async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
     df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
-    
+
     cols = df.columns
     ar = df.to_numpy()
     out = ["{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols)]
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
+    new_data = data = data.split('\n')
+    top_3 = new_data[:3]
+    rest = new_data[3:]
 
-    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{top_3}``` ```\n{rest}```")
     user = await client.fetch_user("1008939447439609907")
     embed.set_author(name=f"{season} Ladder", icon_url=user.avatar_url)
     del df
