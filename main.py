@@ -287,6 +287,7 @@ async def get_stats(discord_id):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
+    header = '+' + header + '+'
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     user = await client.fetch_user(str(discord_id))
@@ -305,6 +306,7 @@ async def get_ladder(season):
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
+    header = '+' + header + '+'
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     user = await client.fetch_user("1008939447439609907")
@@ -313,13 +315,18 @@ async def get_ladder(season):
 
 
 async def check_score(winner_score, loser_score):
-    if int(winner_score) < 11:
+    winner_score = abs(int(winner_score))
+    loser_score = abs(int(loser_score))
+    if winner_score < 11:
         return "Winner must have at least 11 points."
 
-    if int(winner_score) < int(loser_score):
+    if winner_score < loser_score:
         return "Winner must have a higher score."
 
-    if int(winner_score) >= 11 and int(winner_score) - int(loser_score) != 2:
+    if winner_score > 11 and winner_score - loser_score != 2:
+        return "Invalid score. Must win by 2."
+
+    if winner_score == 11 and winner_score - loser_score >= 2:
         return "Invalid score. Must win by 2."
 
     return None
