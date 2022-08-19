@@ -309,7 +309,7 @@ async def get_ladder(season):
     ar = df.to_numpy()
     out = []
     for row in ar:
-        out.append("{: >5} {: >20} {: >4} {: >4} {: >4}".format(*row))
+        out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
     out_string = '\n'.join(out)
     embed.add_field(name=f"test", value=f"```{out_string}```", inline=False)
 
