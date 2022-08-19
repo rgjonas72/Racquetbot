@@ -113,7 +113,7 @@ async def output_game_unranked(game_id, winner, loser, winner_score, loser_score
 
 
 async def reverse_game(game_id, winner_score, loser_score):
-    cursor.execute('select * from game_history where game_id=%s', (game_id,))
+    cursor.execute('select * from game_history where gameid=%s', (game_id,))
     result = cursor.fetchone()
     if result is None:
         return None
@@ -121,7 +121,7 @@ async def reverse_game(game_id, winner_score, loser_score):
     date, winner, winner_name, player1_score, player2_score, season = result
     print(result)
     return None
-    
+
 
 
 
