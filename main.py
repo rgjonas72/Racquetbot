@@ -15,7 +15,6 @@ mydb = mysql.connector.connect(
 )
 
 mydb.autocommit = True
-cursor = mydb.cursor()
 
 # Initiate discord client
 intents = discord.Intents.all()
@@ -60,6 +59,7 @@ async def get_k_value(elo, ngames):
 # d determines whether
 # Player A wins or Player B.
 async def EloRating(winner, loser, season, winner_score, loser_score, update=None):
+    cursor = mydb.cursor()
     # Get elo for both players
     cursor.execute('select elo from `' + season + '` where discord_id=%s', (winner,))
     winner_elo = cursor.fetchone()[0]
@@ -100,8 +100,7 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
                    (winner, winner_name, winner_elo, winner_delta, winner_new_elo, loser, loser_name, loser_elo, loser_delta, loser_new_elo,
                     winner, winner_name, winner_score, loser_score, season,))
         game_id = cursor.lastrowid
-
-    print(game_id)
+    cursor.close()
     embed = await output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season)
     return embed
 
@@ -121,6 +120,7 @@ async def output_game_unranked(game_id, winner, loser, winner_score, loser_score
 
 
 async def reverse_game(game_id, winner_score, loser_score):
+    cursor = mydb.cursor()
     cursor.execute('select * from game_history where gameid=%s', (game_id,))
     result = cursor.fetchone()
     if result is None:
@@ -135,7 +135,7 @@ async def reverse_game(game_id, winner_score, loser_score):
     cursor.execute('update `' + season + '` set elo=elo-%s, wins=wins-1 where discord_id=%s', (new_loser_elo_delta, new_loser))
     cursor.execute('update `' + season + '` set elo=elo-%s, losses=losses-1 where discord_id=%s', (new_winner_elo_delta, new_winner))
     # 2. Run through Elo Rating function with new elo
-
+    cursor.close()
     embed = await EloRating(new_winner, new_loser, season, winner_score, loser_score, update=game_id)
     return embed
 
@@ -147,6 +147,7 @@ async def reverse_game(game_id, winner_score, loser_score):
 async def input_unranked_win(winner, loser, season, winner_score, loser_score):
     await check_player_status_unranked(winner, season);
     await check_player_status_unranked(loser, season);
+    cursor = mydb.cursor()
     cursor.execute('update `' + season + '` set wins=wins+1 where discord_id=%s', (winner,))
     cursor.execute('update `' + season + '` set losses=losses+1 where discord_id=%s', (loser,))
     winner_name = await get_player_name(winner)
@@ -154,18 +155,23 @@ async def input_unranked_win(winner, loser, season, winner_score, loser_score):
     cursor.execute('insert into game_history values (NULL, %s, %s, 0, 0, 0, %s, %s, 0, 0, 0, now(), %s, %s, %s, %s, %s)',
                    (winner, winner_name, loser, loser_name, winner, winner_name, winner_score, loser_score, season,))
     game_id = cursor.lastrowid
+    cursor.close()
     embed = await output_game_unranked(game_id, winner, loser, winner_score, loser_score, season)
     return embed
 
 async def check_player_status_unranked(id, season):
+    cursor = mydb.cursor()
     cursor.execute('select discord_id from `' + season + '` where discord_id = %s', (id,))
     if cursor.fetchone() is None:
         await add_player_unranked(id, season)
+    cursor.close()
 
 
 async def add_player_unranked(id, season):
     name = await get_player_name(id)
+    cursor = mydb.cursor()
     cursor.execute('insert into `' + season + '` values (%s, %s, 0, 0, 0)', (name, id))
+    cursor.close()
 
 
 # Parameters: ID of winner and loser, and string of queue type
@@ -180,40 +186,51 @@ async def input_win(winner, loser, season, winner_score, loser_score):
 
 
 async def check_player_status(id, season):
+    cursor = mydb.cursor()
     cursor.execute('select discord_id from `' + season + '` where discord_id = %s', (id,))
     if cursor.fetchone() is None:
         await add_player(id, season)
+    cursor.close()
 
 
 async def add_player(id, season):
     name = await get_player_name(id)
+    cursor = mydb.cursor()
     cursor.execute('select * from HighTierPlayers where discord_id=%s', (id,))
     elo = 500
     if cursor.fetchone() is not None:
         elo = 1200
     cursor.execute('insert into `' + season + '` values (%s, %s, %s, 0, 0)', (name, id, elo))
+    cursor.close()
 
 
 async def add_season(season):
+    cursor = mydb.cursor()
     cursor.execute('insert into seasons (season_name, primary_ranked, primary_unranked) values (%s, 0, 0)', (season,))
     cursor.execute('create table `' + season + '` (player_name varchar(50), discord_id varchar(18), elo int, wins int, losses int)')
+    cursor.close()
 
 
 async def set_primary_season_ranked(season):
+    cursor = mydb.cursor()
     # End the current season
     cursor.execute('update seasons set primary_ranked = 0, end_date = now() where primary_ranked = 1')
     # Set primary ranked season to specified season
     cursor.execute('update seasons set primary_ranked = 1, start_date = now() where season_name = %s', (season,))
+    cursor.close()
 
 
 async def set_primary_season_unranked(season):
+    cursor = mydb.cursor()
     # End the current season
     cursor.execute('update seasons set primary_unranked = 0, end_date = now() where primary_unranked = 1')
     # Set primary ranked season to specified season
     cursor.execute('update seasons set primary_unranked = 1, start_date = now() where season_name = %s', (season,))
+    cursor.close()
 
 
 async def add_high_tier_player(id):
+    cursor = mydb.cursor()
     cursor.execute('select * from HighTierPlayers where discord_id=%s', (id,))
     if cursor.fetchone() is not None:
         return 'Already a high tier player.'
@@ -223,12 +240,15 @@ async def add_high_tier_player(id):
     elo_boost = 500
     season = await get_current_ranked_season()
     cursor.execute('update `' + season + '` set elo=elo+%s where discord_id=%s', (elo_boost, id,))
+    cursor.close()
     return f'Player added and granted {elo_boost} elo.'
 
 
 async def get_player_rank(discord_id, season):
+    cursor = mydb.cursor()
     cursor.execute('select count(*) from `' + season + '` where elo >= (select elo from `' + season + '` where discord_id=%s)', (discord_id,))
     rank_num = cursor.fetchone()[0]
+    cursor.close()
     return rank_num
 
 
@@ -239,13 +259,17 @@ async def get_player_name(id):
 
 
 async def get_current_ranked_season():
+    cursor = mydb.cursor()
     cursor.execute('select season_name from seasons where primary_ranked = 1')
     season = cursor.fetchone()
+    cursor.close()
     return season[0]
 
 async def get_current_unranked_season():
+    cursor = mydb.cursor()
     cursor.execute('select season_name from seasons where primary_unranked = 1')
     season = cursor.fetchone()
+    cursor.close()
     return season[0]
 
 
@@ -284,8 +308,7 @@ async def get_ladder(season):
     out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*cols))
     for row in ar:
         out.append("{: <5} {: <20} {: <4} {: <4} {: <4}".format(*row))
-    header, data = '\n '.join(out).split('\n', 1)
-    header = ' ' + header
+    header, data = '\n'.join(out).split('\n', 1)
     embed.add_field(name=f"test", value=f"```{header}``` ```\n{data}```", inline=False)
 
     return embed
