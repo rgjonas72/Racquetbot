@@ -117,6 +117,11 @@ async def reverse_game(game_id, winner_score, loser_score):
     result = cursor.fetchone()
     if result is None:
         return None
+    gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
+    date, winner, winner_name, player1_score, player2_score, season = result
+    print(result)
+    return None
+    
 
 
 
@@ -208,6 +213,7 @@ async def get_player_rank(discord_id, season):
     cursor.execute('select count(*) from `' + season + '` where elo >= (select elo from `' + season + '` where discord_id=%s)', (discord_id,))
     rank_num = cursor.fetchone()[0]
     return rank_num
+
 
 async def get_player_name(id):
     n = await client.fetch_user(str(id))
