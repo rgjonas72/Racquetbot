@@ -394,14 +394,14 @@ async def get_history(id1, id2=None):
     df = df[['Player 1', 'Score', 'Player 2', 'Date']]
     cols = df.columns
     ar = df.to_numpy()
-    out = ["{: < 30} {: <7} {: <4} {: <4} {: <4}".format(*cols)]
+    out = ["{: < 30} {: <7} {: <30} {: <8}".format(*cols)]
     if len(df.index) == 0:
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
         return embed
 
     for row in ar:
-        out.append("{: <5} {: <30} {: <4} {: <4} {: <4}".format(*row))
+        out = ["{: < 30} {: <7} {: <30} {: <8}".format(*cols)]
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
