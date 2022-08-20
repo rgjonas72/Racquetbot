@@ -494,13 +494,13 @@ async def get_stats_all(discord_id):
     avg_score_wins_against = round(points_against_win / nwins, 2)
     avg_score_losses = round(points_losses / nlosses, 2)
     avg_score_losses_against = round(points_against_losses / nlosses, 2)
-    
 
 
 
-    embed.add_field(name="__Wins & Losses__", value=f'Wins: {nwins} || Losses: {nlosses}', inline=False)
-    embed.add_field(name="__Total scores__", value=f'Points scored: {total_points} || Points scored on: {total_against_points}', inline=False)
-    embed.add_field(name="__Average score__", value=f'Average Score: {avg_score} || Average Score of Opponent {avg_score_against}\nAverage Score in Wins: {avg_score_wins} || Average Opponent Score in Wins: {avg_score_wins_against}\nAverage Score in Losses: {avg_score_losses} || Average Opponent Score in Losses: {avg_score_losses_against}', inline=False)
+
+    embed.add_field(name="__Wins & Losses__", value=f'Wins: {nwins} -- Losses: {nlosses}', inline=False)
+    embed.add_field(name="__Total scores__", value=f'Points scored: {total_points} -- Points scored on: {total_against_points}', inline=False)
+    embed.add_field(name="__Average score__", value=f'Avg Score: {avg_score} -- Avg Score of Opponent {avg_score_against}\nAvg Score in Wins: {avg_score_wins} -- Avg Opponent Score in Wins: {avg_score_wins_against}\nAvg Score in Losses: {avg_score_losses} -- Avg Opponent Score in Losses: {avg_score_losses_against}', inline=False)
 
     ####
 
