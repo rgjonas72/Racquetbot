@@ -728,9 +728,9 @@ async def on_message(message):
             await message.channel.send(embed=embed)
             return
         elif len(mentions) == 1:
-            id = str(mentions[0].id)
+            player1 = str(mentions[0].id)
         else:
-            id = str(message.author.id)
+            player1 = str(message.author.id)
         embed = await get_history(player1)
         await message.channel.send(embed=embed)
 
