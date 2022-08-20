@@ -378,16 +378,16 @@ async def get_versus_stats(id1, id2):
 
 async def get_history(id1, id2=None):
     id1_name = await get_player_name(id1)
-    if id2 is not None:
+    if id2 is None:
         df = pd.read_sql(f"select player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and (player1_id={id1} or player2_id={id1}) order by game_date desc limit 10", engine)
+        title = f'History for {id1_name}'
+        user = await client.fetch_user(id1)
+        
+    else:
+        df = pd.read_sql(f"select player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1})) order by game_date desc limit 10", engine)
         id2_name = await get_player_name(id2)
         title = f'History between {id1_name} and {id2_name}'
         user = await client.fetch_user("1008939447439609907")
-
-    else:
-        df = pd.read_sql(f"select player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1})) order by game_date desc limit 10", engine)
-        title = f'History for {id1_name}'
-        user = await client.fetch_user(id1)
 
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'] + ' - ' + df['Player 2 Score']
