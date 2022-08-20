@@ -489,7 +489,8 @@ async def on_message(message):
         if embed is None:
             await message.channel.send('Game id does not exist.')
         else:
-            await message.channel.send(embed=embed)
+            channel = client.get_channel(1010336645595267133)
+            await channel.send(embed=embed)
 
     if message.content.lower().startswith('.ranked'):
         # Make it so user can't @ themselves twice...
@@ -518,7 +519,8 @@ async def on_message(message):
         if embed is None:
             await message.channel.send('Game id does not exist.')
         else:
-            await message.channel.send(embed=embed)
+            channel = client.get_channel(1010336645595267133)
+            await channel.send(embed=embed)
 
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
