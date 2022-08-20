@@ -399,8 +399,8 @@ async def get_history(id1, id2=None):
     print(cols)
     ar = df_final.to_numpy()
     print(ar)
-
-    out = ["{: <30} {: <7} {: <30} {: <8}".format(*cols)]
+    out = ["{: <5} {: <30} {: <4} {: <4} {: <4}".format(*cols)]
+    #out = ["{: <30} {: <7} {: <30} {: <8}".format(*cols)]
     if len(df_final.index) == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
