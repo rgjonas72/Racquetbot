@@ -394,7 +394,7 @@ async def get_history(id1, id2=None):
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
-    name_max_length = df["Player 1"].str.len().max()
+    name_max_length = str(df["Player 1"].str.len().max())
 
     cols = df_final.columns
     ar = df_final.to_numpy()
