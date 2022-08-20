@@ -393,15 +393,15 @@ async def get_history(id1, id2=None):
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
-    df = df[['Player 1', 'Score', 'Player 2', 'Date']]
-    print(df)
-    cols = df.columns
+    df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
+    print(df_final)
+    cols = list(df_final.columns)
     print(cols)
-    ar = df.to_numpy()
+    ar = df_final.to_numpy()
     print(ar)
     print("{: < 30} {: <7} {: <30} {: <8}".format(*cols))
     out = ["{: < 30} {: <7} {: <30} {: <8}".format(*cols)]
-    if len(df.index) == 0:
+    if len(df_final.index) == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
@@ -700,11 +700,6 @@ async def on_message(message):
         else:
             id = str(message.author.id)
         embed = await get_stats(id)
-        await message.channel.send(embed=embed)
-
-    if message.content.lower().startswith('.ladder'):
-        season = await get_current_ranked_season()
-        embed = await get_ladder(season)
         await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.allstats'):
