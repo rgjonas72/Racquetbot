@@ -383,7 +383,7 @@ async def get_history(id1, id2=None):
         df = pd.read_sql(f"select player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and (player1_id={id1} or player2_id={id1}) order by game_date desc limit 10", engine)
         title = f'History for {id1_name}'
         user = await client.fetch_user(id1)
-        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score'].where(df['player2'] == id1)]
+        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2'] == id1)
 
 
     else:
@@ -401,11 +401,11 @@ async def get_history(id1, id2=None):
         df_id1_player2_column[] = df_id1_player2_column[['R','L']]
         
         '''
-        
-        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score'].where(df['player2'] == id1)]
+
+        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2'] == id1)
         #df[['player1_score', 'player2_score']] = df[['player2_score', 'player1_score'].where(df['player2'] == id1)]
 
-    
+
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
@@ -429,7 +429,7 @@ async def get_history(id1, id2=None):
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
     return embed
-    
+
 
 
 async def get_versus_stats_all(id1, id2):
