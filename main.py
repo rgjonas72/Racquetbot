@@ -406,7 +406,7 @@ async def get_history(id1, id2=None):
         return embed
 
     for row in ar:
-        out.append("{: <25} {: <7} {: <25} {: <8}".format(*row))
+        out.append("{: <20} {: <7} {: <20} {: <8}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
