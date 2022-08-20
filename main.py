@@ -396,7 +396,6 @@ async def get_stats(discord_id):
     del df
     ####
     df_history = pd.read_sql(f"select * from game_history where (player1_id={discord_id} or player2_id={discord_id}) and season='{season}' and invalid=0", mydb)
-    print(df_history)
     ngames = len(df_history.index)
     if ngames == 0:
         del df_history
@@ -404,19 +403,15 @@ async def get_stats(discord_id):
 
     nwins = len(df_history.loc[df_history['winner_id'] == discord_id].index)
     nlosses = ngames - nwins
-    print(ngames, nwins, nlosses)
 
     as_player1_sums = df_history.loc[df_history['player1_id'] == discord_id]['player1_score'].sum()
     as_player2_sums = df_history.loc[df_history['player2_id'] == discord_id]['player2_score'].sum()
 
-    points_in_wins_p1 = df_history.loc[(df_history['winner_id'] == discord_id) & df_history['player1_id'] == discord_id]
-    points_in_wins_p2 = df_history.loc[(df_history['winner_id'] == discord_id) & df_history['player2_id'] == discord_id]
-    points_in_losses_p1 = df_history.loc[(df_history['winner_id'] != discord_id) & df_history['player1_id'] == discord_id]
-    points_in_losses_p2 = df_history.loc[(df_history['winner_id'] != discord_id) & df_history['player2_id'] == discord_id]
-    print(points_in_wins_p1)
-    print(points_in_wins_p2)
-    print(points_in_losses_p1)
-    print(points_in_losses_p2)
+    points_in_wins_p1 = df_history.loc[(df_history['winner_id'] == discord_id) & (df_history['player1_id'] == discord_id)].sum()
+    points_in_wins_p2 = df_history.loc[(df_history['winner_id'] == discord_id) & (df_history['player2_id'] == discord_id)].sum()
+    points_in_losses_p1 = df_history.loc[(df_history['winner_id'] != discord_id) & (df_history['player1_id'] == discord_id)].sum()
+    points_in_losses_p2 = df_history.loc[(df_history['winner_id'] != discord_id) & (df_history['player2_id'] == discord_id)].sum()
+
 
     avg_score = round((as_player1_sums + as_player2_sums) / ngames, 2)
     avg_score_wins = round((points_in_wins_p1 + points_in_wins_p2) / nwins, 2)
