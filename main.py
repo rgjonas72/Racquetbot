@@ -412,7 +412,7 @@ async def get_stats(discord_id):
     embed.set_footer(text=f'Average score: {avg_score}')
     ####
 
-    del [df, df_history]
+    del df_history
     return embed
 
 
