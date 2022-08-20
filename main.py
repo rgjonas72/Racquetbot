@@ -396,6 +396,7 @@ async def get_stats(discord_id):
     del df
     ####
     df_history = pd.read_sql(f"select * from game_history where (player1_id={discord_id} or player2_id={discord_id}) and season='{season}' and invalid=0", mydb)
+    print(df_history)
     ngames = len(df_history.index)
     if ngames == 0:
         del df_history
