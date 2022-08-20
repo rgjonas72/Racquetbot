@@ -385,8 +385,8 @@ async def get_history(id1, id2=None):
         title = f'History for {id1_name}'
         user = await client.fetch_user(id1)
         print(df)
-        #df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].values)
-        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = pd.np.select(df['player2_id'] == id1, df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].values, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
+        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
+        #df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = pd.np.select(df['player2_id'] == id1, df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].values, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
 
         print(df)
 
