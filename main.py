@@ -401,12 +401,12 @@ async def get_stats(discord_id):
         del df_history
         return embed
 
-    nwins = df_history.loc[df['winner_id'] == discord_id]
+    nwins = df_history.loc[df_history['winner_id'] == discord_id]
     nlosses = ngames - nwins
 
     as_player1_sums = df_history.loc[df_history['player1_id'] == discord_id]['player1_score'].sum()
     as_player2_sums = df_history.loc[df_history['player2_id'] == discord_id]['player2_score'].sum()
-    
+
     points_in_wins_p1 = df_history.loc[(df_history['winner_id'] == discord_id) & df_history['player1_id'] == discord_id]['player1_score']
     points_in_wins_p2 = df_history.loc[(df_history['winner_id'] == discord_id) & df_history['player2_id'] == discord_id]['player2_score']
     points_in_losses_p1 = df_history.loc[(df_history['winner_id'] != discord_id) & df_history['player1_id'] == discord_id]['player1_score']
