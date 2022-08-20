@@ -381,7 +381,7 @@ async def get_history(id1, id2=None):
     if id2 is None:
         df = pd.read_sql(f"select top(10) player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and (player1_id={id1} or player2_id={id1})", engine)
         id2_name = await get_player_name(id2)
-        title = f'History between {id1_name} and {id2_name}
+        title = f'History between {id1_name} and {id2_name}'
         user = await client.fetch_user("1008939447439609907")
 
     else:
