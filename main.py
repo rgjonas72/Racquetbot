@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 from sqlalchemy import create_engine
 import pymysql
+import datetime as dt
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -391,7 +392,7 @@ async def get_history(id1, id2=None):
 
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
-    df['Date'] = pd.to_datetime(df['Date'].astype(str), format='%m/%d/%Y')
+    df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
     df = df[['Player 1', 'Score', 'Player 2', 'Date']]
     print(df)
     cols = df.columns
