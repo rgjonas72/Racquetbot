@@ -394,12 +394,12 @@ async def get_history(id1, id2=None):
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
-    name_max_length = str(df["Player 1"].str.len().max())
+    name_max_length = str(df["Player 1"].str.len().max() + 1)
 
     cols = df_final.columns
     ar = df_final.to_numpy()
 
-    out = ['{: >{x}} {: ^7} {: <{x}} {: <8}'.format(*cols, x=name_max_length)]
+    out = ['{: >{x}} {: ^8} {: <{x}} {: <10}'.format(*cols, x=name_max_length)]
     if len(df_final.index) == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
@@ -407,7 +407,7 @@ async def get_history(id1, id2=None):
         return embed
 
     for row in ar:
-        out.append('{: >{x}} {: ^7} {: <{x}} {: <8}'.format(*row, x=name_max_length))
+        out.append('{: >{x}} {: ^8} {: <{x}} {: <10}'.format(*row, x=name_max_length))
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
