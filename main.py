@@ -395,12 +395,12 @@ async def get_history(id1, id2=None):
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
     print(df_final)
-    cols = list(df_final.columns)
+    df_final.columns = ['1', '2', '3', '4']
+    cols = df_final.columns
     print(cols)
     ar = df_final.to_numpy()
     print(ar)
-    out = ["{: <5} {: <30} {: <4} {: <4} {: <4}".format(*cols)]
-    #out = ["{: <30} {: <7} {: <30} {: <8}".format(*cols)]
+    out = ["{: <30} {: <7} {: <30} {: <8}".format(*cols)]
     if len(df_final.index) == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
