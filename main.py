@@ -383,7 +383,7 @@ async def get_history(id1, id2=None):
         df = pd.read_sql(f"select player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and (player1_id={id1} or player2_id={id1}) order by game_date desc limit 10", engine)
         title = f'History for {id1_name}'
         user = await client.fetch_user(id1)
-        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1)
+        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].values)
 
 
     else:
