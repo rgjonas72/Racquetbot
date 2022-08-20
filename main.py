@@ -415,8 +415,8 @@ async def get_stats(discord_id):
 
     avg_score = round((as_player1_sums + as_player2_sums) / ngames, 2)
     avg_score_wins = round((points_in_wins_p1 + points_in_wins_p2) / nwins, 2)
-    avg_score_losses = round((points_in_losses_p1 + points_in_losses_p2) / nwins, 2)
-    embed.set_footer(text=f'Average score: {avg_score}\nAverage score in wins:{avg_score_wins}\nAverage score in losses:{avg_score_losses}')
+    avg_score_losses = round((points_in_losses_p1 + points_in_losses_p2) / nlosses, 2)
+    embed.set_footer(text=f'Average score: {avg_score}\nAverage score in wins: {avg_score_wins}\nAverage score in losses: {avg_score_losses}')
     ####
 
     del df_history
