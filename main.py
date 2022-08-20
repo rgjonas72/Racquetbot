@@ -375,6 +375,40 @@ async def get_versus_stats(id1, id2):
     del [df, df_id1_wins_p1, df_id2_wins_p1, df_id1_wins_p2, df_id2_wins_p2]
     return embed
 
+
+async def get_history(id1, id2=None):
+    id1_name = await get_player_name(id1)
+    if id2 is None:
+        df = pd.read_sql(f"select top(10) player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and (player1_id={id1} or player2_id={id1})", engine)
+        id2_name = await get_player_name(id2)
+        title = f'History between {id1_name} and {id2_name}
+        user = await client.fetch_user("1008939447439609907")
+
+    else:
+        df = pd.read_sql(f"select top(10) player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", engine)
+        title = f'History for {id1_name}'
+        user = await client.fetch_user(id1)
+
+    df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
+    df['Score'] = df['Player 1 Score'] + ' - ' + df['Player 2 Score']
+    df = df[['Player 1', 'Score', 'Player 2', 'Date']]
+    cols = df.columns
+    ar = df.to_numpy()
+    out = ["{: < 30} {: <7} {: <4} {: <4} {: <4}".format(*cols)]
+    if len(df.index) == 0:
+        embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
+        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+        return embed
+
+    for row in ar:
+        out.append("{: <5} {: <30} {: <4} {: <4} {: <4}".format(*row))
+    header, data = '\n'.join(out).split('\n', 1)
+
+    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+    return embed
+
+
 async def get_versus_stats_all(id1, id2):
     df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", engine)
     counts = df['winner_id'].value_counts()
@@ -647,7 +681,7 @@ async def on_message(message):
     if message.content.lower().startswith('.stats'):
         mentions = message.mentions
         if len(mentions) > 2:
-            await message.channel.send('Can only mention one player.')
+            await message.channel.send('Can only mention one or two players.')
         elif len(mentions) == 2:
             player1 = str(mentions[0].id)
             player2 = str(mentions[1].id)
@@ -669,7 +703,7 @@ async def on_message(message):
     if message.content.lower().startswith('.allstats'):
         mentions = message.mentions
         if len(mentions) > 2:
-            await message.channel.send('Can only mention one player.')
+            await message.channel.send('Can only mention one or two players.')
         elif len(mentions) == 2:
             player1 = str(mentions[0].id)
             player2 = str(mentions[1].id)
@@ -682,6 +716,24 @@ async def on_message(message):
             id = str(message.author.id)
         embed = await get_stats_all(id)
         await message.channel.send(embed=embed)
+
+    if message.content.lower().startswith('.history'):
+        mentions = message.mentions
+        if len(mentions) > 2:
+            await message.channel.send('Can only mention one player.')
+        elif len(mentions) == 2:
+            player1 = str(mentions[0].id)
+            player2 = str(mentions[1].id)
+            embed = await get_versus_history(player1, player2)
+            await message.channel.send(embed=embed)
+            return
+        elif len(mentions) == 1:
+            id = str(mentions[0].id)
+        else:
+            id = str(message.author.id)
+        embed = await get_history(player1)
+        await message.channel.send(embed=embed)
+
 
     if message.content.lower().startswith('.ladder'):
         season = await get_current_ranked_season()
