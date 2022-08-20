@@ -392,7 +392,27 @@ async def get_stats(discord_id):
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
 
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+    
     del df
+    ####
+    df_history = pd.read_sql(f'select * from game_history where season={season} and discord_id={discord_id} and invalid=0', mydb)
+    ngames = len(df_history.index)
+    if ngames == 0:
+        del df_history
+        return embed
+
+    #nwins = df_history.loc[df['winner_id'] == discord_id]
+    #nlosses = ngames - nwins
+
+    as_player1_sums = df_history.loc[df['player1_id'] == discord_id]['player1_score'].sum()
+    as_player2_sums = df_history.loc[df['player2_id'] == discord_id]['player2_score'].sum()
+
+    avg_score = (as_player1_sums + as_player2_sums) / ngames
+
+    embed.set_footer(text=f'Average score: {avg_score}')
+    ####
+
+    del [df, df_history]
     return embed
 
 
@@ -489,6 +509,7 @@ async def on_message(message):
         if embed is None:
             await message.channel.send('Game id does not exist.')
         else:
+            await message.channel.send(embed=embed)
             channel = client.get_channel(1010336645595267133)
             await channel.send(embed=embed)
 
@@ -519,6 +540,7 @@ async def on_message(message):
         if embed is None:
             await message.channel.send('Game id does not exist.')
         else:
+            await message.channel.send(embed=embed)
             channel = client.get_channel(1010336645595267133)
             await channel.send(embed=embed)
 
