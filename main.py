@@ -4,6 +4,7 @@ import math
 import mysql.connector
 import pandas as pd
 import numpy as np
+import sqlalchemy import create_engine
 
 mydb = mysql.connector.connect(
     host = "localhost",
@@ -13,6 +14,8 @@ mydb = mysql.connector.connect(
 )
 
 mydb.autocommit = True
+
+engine = create_engine("mysql+pymysql://racquetbot:racquet@localhost/racquetbot?charset=utf8mb4")
 
 # Initiate discord client
 intents = discord.Intents.all()
@@ -343,7 +346,7 @@ async def get_current_unranked_season():
 
 async def get_versus_stats(id1, id2):
     season = await get_current_ranked_season()
-    df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where season='{season}' and invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", mydb)
+    df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where season='{season}' and invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", engine)
 
     counts = df['winner_id'].value_counts()
     id1_wins = counts[id1]
@@ -372,7 +375,7 @@ async def get_versus_stats(id1, id2):
     return embed
 
 async def get_versus_stats_all(id1, id2):
-    df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", mydb)
+    df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", engine)
     counts = df['winner_id'].value_counts()
     id1_wins = counts[id1]
     id2_wins = counts[id2]
@@ -402,7 +405,7 @@ async def get_versus_stats_all(id1, id2):
 async def get_stats(discord_id):
     season = await get_current_ranked_season()
     rank = await get_player_rank(discord_id, season)
-    df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', mydb)
+    df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` where discord_id={discord_id}', engine)
     df.insert(0, 'Rank', rank)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
     user = await client.fetch_user(str(discord_id))
@@ -425,7 +428,7 @@ async def get_stats(discord_id):
 
     del df
     ####
-    df_history = pd.read_sql(f"select * from game_history where (player1_id={discord_id} or player2_id={discord_id}) and season='{season}' and invalid=0", mydb)
+    df_history = pd.read_sql(f"select * from game_history where (player1_id={discord_id} or player2_id={discord_id}) and season='{season}' and invalid=0", engine)
     ngames = len(df_history.index)
     if ngames == 0:
         del df_history
@@ -455,7 +458,7 @@ async def get_stats(discord_id):
 
 async def get_stats_all(discord_id):
     user = await client.fetch_user(str(discord_id))
-    df_history = pd.read_sql(f"select * from game_history where invalid=0 and (player1_id={discord_id} or player2_id={discord_id})", mydb)
+    df_history = pd.read_sql(f"select * from game_history where invalid=0 and (player1_id={discord_id} or player2_id={discord_id})", engine)
     ngames = len(df_history.index)
     embed = discord.Embed(color=0x70ac64)
     name = user.display_name
@@ -513,8 +516,8 @@ async def get_stats_all(discord_id):
 
 
 async def get_ladder(season):
-    #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', mydb)
-    df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', mydb)
+    #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', engine)
+    df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', engine)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
 
     user = await client.fetch_user("1008939447439609907")
