@@ -339,12 +339,11 @@ async def get_current_unranked_season():
 async def get_versus_stats(id1, id2):
     season = await get_current_ranked_season()
     df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where season='{season}' and invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", mydb)
-    print(df)
+
     counts = df['winner_id'].value_counts()
     id1_wins = counts[id1]
     id2_wins = counts[id2]
 
-    print(id1_wins, id2_wins)
 
     df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id'] == id1)]
     df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id'] == id2)]
@@ -361,6 +360,33 @@ async def get_versus_stats(id1, id2):
     id1_name = await get_player_name(id1)
     id2_name = await get_player_name(id2)
     embed = discord.Embed(color=0x70ac64, title=f'Stats between {id1_name} and {id2_name}')
+    embed.add_field(name="__Wins per player__", value=f'<@{id1}> {id1_wins} - {id2_wins} <@{id2}>', inline=False)
+    embed.add_field(name="__Total score per player__", value=f'<@{id1}> {id1_total_points} - {id2_total_points} <@{id2}>', inline=False)
+    embed.add_field(name="__Average score per player__", value=f'<@{id1}> {id1_average_points} - {id2_average_points} <@{id2}>', inline=False)
+    del [df, df_id1_wins_p1, df_id2_wins_p1, df_id1_wins_p2, df_id2_wins_p2]
+    return embed
+
+async def get_versus_stats_all(id1, id2):
+    df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", mydb)
+    counts = df['winner_id'].value_counts()
+    id1_wins = counts[id1]
+    id2_wins = counts[id2]
+
+    df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id'] == id1)]
+    df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id'] == id2)]
+    df_id1_wins_p2 = df.loc[(df['winner_id'] == id1) & (df['player2_id'] == id1)]
+    df_id2_wins_p2 = df.loc[(df['winner_id'] == id2) & (df['player2_id'] == id2)]
+
+    #id1_winning_scores = df.loc[(df['winner_id'] ==  id1)]
+    id1_total_points = df_id1_wins_p1['player1_score'].sum() + df_id1_wins_p2['player2_score'].sum() + df_id2_wins_p1['player2_score'].sum() + df_id2_wins_p2['player1_score'].sum()
+    id2_total_points = df_id1_wins_p1['player2_score'].sum() + df_id1_wins_p2['player1_score'].sum() + df_id2_wins_p1['player1_score'].sum() + df_id2_wins_p2['player2_score'].sum()
+    id1_average_points = round(id1_total_points / len(df.index), 2)
+    id2_average_points = round(id2_total_points / len(df.index), 2)
+
+    #embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    id1_name = await get_player_name(id1)
+    id2_name = await get_player_name(id2)
+    embed = discord.Embed(color=0x70ac64, title=f'All-time stats between {id1_name} and {id2_name}')
     embed.add_field(name="__Wins per player__", value=f'<@{id1}> {id1_wins} - {id2_wins} <@{id2}>', inline=False)
     embed.add_field(name="__Total score per player__", value=f'<@{id1}> {id1_total_points} - {id2_total_points} <@{id2}>', inline=False)
     embed.add_field(name="__Average score per player__", value=f'<@{id1}> {id1_average_points} - {id2_average_points} <@{id2}>', inline=False)
@@ -420,6 +446,67 @@ async def get_stats(discord_id):
 
     del df_history
     return embed
+
+
+async def get_stats_all(discord_id):
+    user = await client.fetch_user(str(discord_id))
+    df_history = pd.read_sql(f"select * from game_history where invalid=0 and (player1_id={discord_id} or player2_id={discord_id})", mydb)
+    ngames = len(df_history.index)
+    embed = discord.Embed(color=0x70ac64)
+    if ngames == 0:
+        name = user.display_name
+        embed.set_author(name=f'{name} all-time stats', icon_url=user.avatar_url)
+        del df_history
+        return embed
+
+    nwins = len(df_history.loc[df_history['winner_id'] == discord_id].index)
+    nlosses = ngames - nwins
+
+    '''
+    as_player1_sums = df_history.loc[df_history['player1_id'] == discord_id]['player1_score'].sum()
+    as_player2_sums = df_history.loc[df_history['player2_id'] == discord_id]['player2_score'].sum()
+    total_score = as_player1_sums + as_player2_sums
+
+    as_player1_against_sums = df_history.loc[df_history['player1_id'] == discord_id]['player2_score'].sum()
+    as_player2_against_sums = df_history.loc[df_history['player2_id'] == discord_id]['player1_score'].sum()
+    total_score_against = as_player1_against_sums + as_player2_against_sums
+    '''
+
+    points_in_wins_p1 = df_history.loc[(df_history['winner_id'] == discord_id) & (df_history['player1_id'] == discord_id)]['player1_score'].sum()
+    points_in_wins_p2 = df_history.loc[(df_history['winner_id'] == discord_id) & (df_history['player2_id'] == discord_id)]['player2_score'].sum()
+    points_in_losses_p1 = df_history.loc[(df_history['winner_id'] != discord_id) & (df_history['player1_id'] == discord_id)]['player1_score'].sum()
+    points_in_losses_p2 = df_history.loc[(df_history['winner_id'] != discord_id) & (df_history['player2_id'] == discord_id)]['player2_score'].sum()
+    points_win = points_in_wins_p1 + points_in_wins_p2
+    points_losses = points_in_losses_p1 + points_in_losses_p2
+    total_points = points_win + points_losses
+
+    points_against_in_wins_p1 = df_history.loc[(df_history['winner_id'] == discord_id) & (df_history['player1_id'] == discord_id)]['player2_score'].sum()
+    points_against_in_wins_p2 = df_history.loc[(df_history['winner_id'] == discord_id) & (df_history['player2_id'] == discord_id)]['player1_score'].sum()
+    points_against_in_losses_p1 = df_history.loc[(df_history['winner_id'] != discord_id) & (df_history['player1_id'] == discord_id)]['player2_score'].sum()
+    points_against_in_losses_p2 = df_history.loc[(df_history['winner_id'] != discord_id) & (df_history['player2_id'] == discord_id)]['player1_score'].sum()
+    points_against_win = points_against_in_wins_p1 + points_against_in_wins_p2
+    points_against_losses = points_against_in_losses_p1 + points_against_in_losses_p2
+    total_against_points = points_against_win + points_against_losses
+
+    avg_score = round(total_points/ ngames, 2)
+    avg_score_against = round(total_against_points / ngames, 2)
+    avg_score_wins = round(points_win / nwins, 2)
+    avg_score_wins_against = round(points_against_win / nwins, 2)
+    avg_score_losses = round(points_losses / nlosses, 2)
+    avg_score_losses_against = round(points_against_losses / nlosses, 2)
+    
+
+
+
+    embed.add_field(name="__Wins & Losses__", value=f'Wins: {nwins} || Losses: {nlosses}', inline=False)
+    embed.add_field(name="__Total scores__", value=f'Points scored: {total_points} || Points scored on: {total_against_points}', inline=False)
+    embed.add_field(name="__Average score__", value=f'Average Score: {avg_score} || Average Score of Opponent {avg_score_against}\nAverage Score in Wins: {avg_score_wins} || Average Opponent Score in Wins: {avg_score_wins_against}\nAverage Score in Losses: {avg_score_losses} || Average Opponent Score in Losses: {avg_score_losses_against}', inline=False)
+
+    ####
+
+    del df_history
+    return embed
+
 
 
 async def get_ladder(season):
@@ -566,13 +653,33 @@ async def on_message(message):
             id = str(message.author.id)
         embed = await get_stats(id)
         await message.channel.send(embed=embed)
-        ### Get stats function here
 
     if message.content.lower().startswith('.ladder'):
         season = await get_current_ranked_season()
         embed = await get_ladder(season)
         await message.channel.send(embed=embed)
-        ### Get stats function here
+
+    if message.content.lower().startswith('.allstats'):
+        mentions = message.mentions
+        if len(mentions) > 2:
+            await message.channel.send('Can only mention one player.')
+        elif len(mentions) == 2:
+            player1 = str(mentions[0].id)
+            player2 = str(mentions[1].id)
+            embed = await get_versus_stats_all(player1, player2)
+            await message.channel.send(embed=embed)
+            return
+        elif len(mentions) == 1:
+            id = str(mentions[0].id)
+        else:
+            id = str(message.author.id)
+        embed = await get_stats_all(id)
+        await message.channel.send(embed=embed)
+
+    if message.content.lower().startswith('.ladder'):
+        season = await get_current_ranked_season()
+        embed = await get_ladder(season)
+        await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.addhightierplayer'):
         if not auth_user:
