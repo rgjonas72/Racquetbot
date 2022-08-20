@@ -392,10 +392,10 @@ async def get_stats(discord_id):
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
 
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
-    
+
     del df
     ####
-    df_history = pd.read_sql(f'select * from game_history where season={season} and discord_id={discord_id} and invalid=0', mydb)
+    df_history = pd.read_sql(f'select * from game_history where `season={season}` and discord_id={discord_id} and invalid=0', mydb)
     ngames = len(df_history.index)
     if ngames == 0:
         del df_history
