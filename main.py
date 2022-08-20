@@ -107,7 +107,8 @@ async def output_game(game_id):
     cursor.execute('select * from game_history where gameid=%s', (game_id,))
     result = cursor.fetchone()
     if result is None:
-         return None
+        cursor.close()
+        return None
     print(result)
     gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
         date, winner, winner_name, player1_score, player2_score, season, invalid = result
@@ -143,6 +144,7 @@ async def validate_game(game_id):
     cursor.execute('select player1_id, player1_elo_delta, player2_id, player2_elo_delta, winner_id, season from game_history where gameid=%s and invalid=1', (game_id,))
     result = cursor.fetchone()
     if result is None:
+        cursor.close()
         return 'Game not found or already valid.'
     player1, player1_elo_delta, player2, player2_elo_delta, winner, season = result
     if winner == player1:
@@ -166,6 +168,7 @@ async def invalidate_game(game_id):
     cursor.execute('select player1_id, player1_elo_delta, player2_id, player2_elo_delta, winner_id, season from game_history where gameid=%s and invalid=0', (game_id,))
     result = cursor.fetchone()
     if result is None:
+        cursor.close()
         return 'Game not found or already invalid.'
     player1, player1_elo_delta, player2, player2_elo_delta, winner, season = result
     if winner == player1:
@@ -188,6 +191,7 @@ async def reverse_game(game_id, winner_score, loser_score):
     cursor.execute('select * from game_history where gameid=%s and invalid=0', (game_id,))
     result = cursor.fetchone()
     if result is None:
+        cursor.close()
         return None
     gameid, player1, player1_name, player1_elo, player1_elo_delta, player1_elo_after, player2, player2_name, player2_elo, player2_elo_delta, player2_elo_after, \
     date, winner, winner_name, player1_score, player2_score, season, invalid = result
@@ -296,6 +300,7 @@ async def add_high_tier_player(id):
     cursor = mydb.cursor()
     cursor.execute('select * from HighTierPlayers where discord_id=%s', (id,))
     if cursor.fetchone() is not None:
+        cursor.close()
         return 'Already a high tier player.'
     name = await get_player_name(id)
     cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
@@ -453,9 +458,9 @@ async def get_stats_all(discord_id):
     df_history = pd.read_sql(f"select * from game_history where invalid=0 and (player1_id={discord_id} or player2_id={discord_id})", mydb)
     ngames = len(df_history.index)
     embed = discord.Embed(color=0x70ac64)
+    name = user.display_name
+    embed.set_author(name=f'{name} all-time stats', icon_url=user.avatar_url)
     if ngames == 0:
-        name = user.display_name
-        embed.set_author(name=f'{name} all-time stats', icon_url=user.avatar_url)
         del df_history
         return embed
 
@@ -496,11 +501,9 @@ async def get_stats_all(discord_id):
     avg_score_losses_against = round(points_against_losses / nlosses, 2)
 
 
-
-
     embed.add_field(name="__Wins & Losses__", value=f'Wins: {nwins} -- Losses: {nlosses}', inline=False)
     embed.add_field(name="__Total scores__", value=f'Points scored: {total_points} -- Points scored on: {total_against_points}', inline=False)
-    embed.add_field(name="__Average score__", value=f'Avg Score: {avg_score} -- Avg Score of Opponent {avg_score_against}\nAvg Score in Wins: {avg_score_wins} -- Avg Opponent Score in Wins: {avg_score_wins_against}\nAvg Score in Losses: {avg_score_losses} -- Avg Opponent Score in Losses: {avg_score_losses_against}', inline=False)
+    embed.add_field(name="__Average score__", value=f'Avg Score: {avg_score} -- Avg Score of Opponent: {avg_score_against}\nAvg Score in Wins: {avg_score_wins} -- Avg Opponent Score in Wins: {avg_score_wins_against}\nAvg Score in Losses: {avg_score_losses} -- Avg Opponent Score in Losses: {avg_score_losses_against}', inline=False)
 
     ####
 
