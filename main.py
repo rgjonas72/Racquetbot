@@ -394,9 +394,12 @@ async def get_history(id1, id2=None):
 
 
     df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
-    df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] > df['player2_score'])
+    df['player1_score_string'] = ('**' + df['player1_score'].astype(str) + '**').where(df['player1_score'] > df['player2_score'])
+    df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] < df['player2_score'])
+    df['player2_score_string'] = ('**' + df['player2_score'].astype(str) + '**').where(df['player1_score'] < df['player2_score'])
+    df['player2_score_string'] = df['player2_score'].astype(str).where(df['player1_score'] > df['player2_score'])
     print(df['player1_score_string'])
-    df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
+    df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score_old', 'Player 2 Score_old', 'Date', 'Player 1 Score', 'Player 2 Score']
 
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
