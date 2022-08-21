@@ -445,8 +445,8 @@ async def get_history(id1, id2=None):
     num_rows = len(df.index)
     if num_rows == 0:
         out = out[0]
-        embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
-        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+        embed = discord.Embed(color=0x70ac64, description=f"```{out}```")
+        embed.set_author(name=title, icon_url=user.avatar_url)
         del [df, df_final]
         return embed
 
@@ -456,7 +456,7 @@ async def get_history(id1, id2=None):
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```yaml\n{header}``` ```\n{data}```")
-    embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+    embed.set_author(name=title, icon_url=user.avatar_url)
     del [df, df_final]
     return embed
 
