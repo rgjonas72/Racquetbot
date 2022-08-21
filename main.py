@@ -895,24 +895,24 @@ async def on_message(message):
         await message.channel.send(result)
 
     if message.content.lower().startswith('.help'):
-    embed = discord.Embed(title='Racquetbot Commands', color=0x70ac64)
-    embed.add_field(name=".ranked",
-                    value="Type .ranked followed by mentioning both players and the score.\nExample: .ranked @user1 @user2 11-6",
-                    inline=True)
-    embed.add_field(name=".normal or .unranked",
-                    value="Type .normal or .unranked followed by mentioning both players and the score.\nExample: .normal @user1 @user2 11-6",
-                    inline=True)
-    embed.add_field(name=".stats",
-                    value="Type .stats to view your statistics for the current season, or type .stats and @ someone else to view theirs.\nYou can also type .stats and mention 2 users to view their stats against each other.",
-                    inline=True)
-    embed.add_field(name=".allstats",
-                    value="Type .allstats to view all statistics from all seasons, or type .allstats and @ someone else to view theirs.",
-                    inline=True)
-    embed.add_field(name=".history",
-                    value="Type .history to view your game history, or type .history and @ someone else to view theirs.\nCan also mention two users to view their history against each other.",
-                    inline=True)
-    embed.add_field(name=".ladder or .leaderboard", value="Type .ladder or .leaderboard to view the ladder.", inline=True)
-    await message.channel.send(embed=embed)
+        embed = discord.Embed(title='Racquetbot Commands', color=0x70ac64)
+        embed.add_field(name=".ranked",
+                        value="Type .ranked followed by mentioning both players and the score.\nExample: .ranked @user1 @user2 11-6",
+                        inline=True)
+        embed.add_field(name=".normal or .unranked",
+                        value="Type .normal or .unranked followed by mentioning both players and the score.\nExample: .normal @user1 @user2 11-6",
+                        inline=True)
+        embed.add_field(name=".stats",
+                        value="Type .stats to view your statistics for the current season, or type .stats and @ someone else to view theirs.\nYou can also type .stats and mention 2 users to view their stats against each other.",
+                        inline=True)
+        embed.add_field(name=".allstats",
+                        value="Type .allstats to view all statistics from all seasons, or type .allstats and @ someone else to view theirs.",
+                        inline=True)
+        embed.add_field(name=".history",
+                        value="Type .history to view your game history, or type .history and @ someone else to view theirs.\nCan also mention two users to view their history against each other.",
+                        inline=True)
+        embed.add_field(name=".ladder or .leaderboard", value="Type .ladder or .leaderboard to view the ladder.", inline=True)
+        await message.channel.send(embed=embed)
 
 
 # client.run(os.environ['TOKEN'])
