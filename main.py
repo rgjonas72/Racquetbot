@@ -404,7 +404,7 @@ async def get_history(id1, id2=None):
     cols = df_final.columns
     ar = df_final.to_numpy()
 
-    out = ['{: >{p1_len}} {: ^8} {: <{p2_len}} {: <10}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
+    out = ['{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^10}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
     if len(df_final.index) == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
@@ -412,7 +412,7 @@ async def get_history(id1, id2=None):
         return embed
 
     for row in ar:
-        out.append('{: >{p1_len}} {: ^8} {: <{p2_len}} {: <10}'.format(*row, p1_len=name_max_length_p1, p2_len=name_max_length_p2))
+        out.append('{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^10}'.format(*row, p1_len=name_max_length_p1, p2_len=name_max_length_p2))
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
@@ -731,7 +731,7 @@ async def on_message(message):
         elif len(mentions) == 2:
             player1 = str(mentions[0].id)
             player2 = str(mentions[1].id)
-            embed = await get_versus_history(player1, player2)
+            embed = await get_history(player1, player2)
             await message.channel.send(embed=embed)
             return
         elif len(mentions) == 1:
