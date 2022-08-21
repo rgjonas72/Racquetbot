@@ -334,8 +334,8 @@ async def add_high_tier_player(id):
         return 'Already a high tier player.'
     name = await get_player_name(id)
     cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
-    ### Give them +500 elo here in current season?
-    elo_boost = 500
+    ### Give them +600 elo here in current season?
+    elo_boost = 600
     season = await get_current_ranked_season()
     cursor.execute('update `' + season + '` set elo=elo+%s where discord_id=%s', (elo_boost, id,))
     cursor.close()
@@ -430,7 +430,7 @@ async def get_history(id1, id2=None):
 
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
-    df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
+    df['Date'] = df['Date'].dt.strftime('%m/%d')
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
     name_max_length_p1 = str(max(8, df["Player 1"].str.len().max() + 1))
     name_max_length_p2 = str(max(8, df["Player 2"].str.len().max() + 1))
@@ -440,7 +440,7 @@ async def get_history(id1, id2=None):
     num_rows = len(df_final.index)
     del [df, df_final]
 
-    out = ['{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^10}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
+    out = ['{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^5}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
     if num_rows == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
@@ -448,7 +448,7 @@ async def get_history(id1, id2=None):
         return embed
 
     for row in ar:
-        out.append('{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^10}'.format(*row, p1_len=name_max_length_p1, p2_len=name_max_length_p2))
+        out.append('{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^5}'.format(*row, p1_len=name_max_length_p1, p2_len=name_max_length_p2))
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```yaml\n{header}``` ```\n{data}```")
@@ -779,7 +779,7 @@ async def on_message(message):
         await message.channel.send(embed=embed)
 
 
-    if message.content.lower().startswith('.ladder'):
+    if message.content.lower().startswith('.ladder') or message.content.lower().startswith('.leaderboard'):
         season = await get_current_ranked_season()
         embed = await get_ladder(season)
         await message.channel.send(embed=embed)
@@ -868,6 +868,9 @@ async def on_message(message):
             await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.invalidgame'):
+        if not auth_user:
+            await message.channel.send('Not allowed to use this command.')
+            return
         try:
             game_id = int(msg.lower().split('.invalidgame')[1].replace(" ", ""))
         except:
@@ -879,6 +882,9 @@ async def on_message(message):
 
 
     if message.content.lower().startswith('.validgame'):
+        if not auth_user:
+            await message.channel.send('Not allowed to use this command.')
+            return
         try:
             game_id = int(msg.lower().split('.validgame')[1].replace(" ", ""))
         except:
@@ -887,6 +893,27 @@ async def on_message(message):
 
         result = await validate_game(game_id)
         await message.channel.send(result)
+
+    if message.content.lower().startswith('.help'):
+    embed = discord.Embed(title='Racquetbot Commands', color=0x70ac64)
+    embed.add_field(name=".ranked",
+                    value="Type .ranked followed by mentioning both players and the score.\nExample: .ranked @user1 @user2 11-6",
+                    inline=True)
+    embed.add_field(name=".normal or .unranked",
+                    value="Type .normal or .unranked followed by mentioning both players and the score.\nExample: .normal @user1 @user2 11-6",
+                    inline=True)
+    embed.add_field(name=".stats",
+                    value="Type .stats to view your statistics for the current season, or type .stats and @ someone else to view theirs.\nYou can also type .stats and mention 2 users to view their stats against each other.",
+                    inline=True)
+    embed.add_field(name=".allstats",
+                    value="Type .allstats to view all statistics from all seasons, or type .allstats and @ someone else to view theirs.",
+                    inline=True)
+    embed.add_field(name=".history",
+                    value="Type .history to view your game history, or type .history and @ someone else to view theirs.\nCan also mention two users to view their history against each other.",
+                    inline=True)
+    embed.add_field(name=".ladder or .leaderboard", value="Type .ladder or .leaderboard to view the ladder.", inline=True)
+    await message.channel.send(embed=embed)
+
 
 # client.run(os.environ['TOKEN'])
 TOKEN = open("/repo/discord_token.txt", "r").read()
