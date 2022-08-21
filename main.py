@@ -478,7 +478,7 @@ async def get_stats(discord_id):
         out.append("{: <5} {: <30} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
 
-    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    embed = discord.Embed(color=0x70ac64, description=f"```yaml\n{header}``` ```\n{data}```")
 
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
 
@@ -589,7 +589,7 @@ async def get_ladder(season):
         out.append("{: <5} {: <30} {: <4} {: <4} {: <4}".format(*row))
     header, data = '\n'.join(out).split('\n', 1)
 
-    embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
+    embed = discord.Embed(color=0x70ac64, description=f"```yaml\n{header}``` ```\n{data}```")
     embed.set_author(name=f"{season} Ladder", icon_url=user.avatar_url)
     del df
     return embed
