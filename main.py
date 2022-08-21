@@ -429,31 +429,34 @@ async def get_history(id1, id2=None):
     #df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score_old', 'Player 2 Score_old', 'Date', 'Player 1 Score', 'Player 2 Score']
 
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
+
+    
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d')
+
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
     name_max_length_p1 = str(max(8, df["Player 1"].str.len().max() + 1))
     name_max_length_p2 = str(max(8, df["Player 2"].str.len().max() + 1))
 
     cols = df_final.columns
-    ar = df_final.to_numpy()
-    num_rows = len(df_final.index)
-    del [df, df_final]
-
     out = ['{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^5}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
+
+    num_rows = len(df.index)
     if num_rows == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
+        del [df, df_final]
         return embed
 
+    ar = df_final.to_numpy()
     for row in ar:
         out.append('{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^5}'.format(*row, p1_len=name_max_length_p1, p2_len=name_max_length_p2))
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```yaml\n{header}``` ```\n{data}```")
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
-
+    del [df, df_final]
     return embed
 
 
