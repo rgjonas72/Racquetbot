@@ -394,11 +394,16 @@ async def get_history(id1, id2=None):
 
 
     df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
-    df['player1_score_string'] = df['player1_score'].where(df['player1_score'] > df['player2_score']).astype(str).apply(lambda x: "{}{}{}".format('**', x, '**'))
-    df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] < df['player2_score'])
-    df['player2_score_string'] = df['player2_score'].where(df['player1_score'] < df['player2_score']).astype(str).apply(lambda x: "{}{}{}".format('**', x, '**'))
-    df['player2_score_string'] = df['player2_score'].astype(str).where(df['player1_score'] > df['player2_score'])
+    #df['player1_score_string'] = df['player1_score'].where(df['player1_score'] > df['player2_score']).astype(str).apply(lambda x: "{}{}{}".format('**', x, '**'))
+    df['player1_score_string'] = df['player1_score'].where(df['player1_score'] > df['player2_score'])
     print(df['player1_score_string'])
+    df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] < df['player2_score'])
+    print(df['player1_score_string'])
+    #df['player2_score_string'] = df['player2_score'].where(df['player1_score'] < df['player2_score']).astype(str).apply(lambda x: "{}{}{}".format('**', x, '**'))
+    df['player2_score_string'] = df['player2_score'].where(df['player1_score'] < df['player2_score'])
+    df['player2_score_string']
+    df['player2_score_string'] = df['player2_score'].astype(str).where(df['player1_score'] > df['player2_score'])
+    df['player2_score_string']
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score_old', 'Player 2 Score_old', 'Date', 'Player 1 Score', 'Player 2 Score']
 
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
@@ -409,10 +414,11 @@ async def get_history(id1, id2=None):
 
     cols = df_final.columns
     ar = df_final.to_numpy()
+    num_rows = len(df_final.index)
     del [df, df_final]
 
     out = ['{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^10}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
-    if len(df_final.index) == 0:
+    if num_rows == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
         embed.set_author(name=user.display_name, icon_url=user.avatar_url)
