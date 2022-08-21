@@ -394,12 +394,12 @@ async def get_history(id1, id2=None):
 
 
     df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
-    df['player1_score_string'] = df['player1_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] > df['player2_score'], df['player1_score_string'])
+    df['player1_score_string'] = df['player1_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] > df['player2_score'])
     #df['player1_score_string'] = df['player1_score'].where(df['player1_score'] > df['player2_score'])
     print(df['player1_score_string'])
     df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] < df['player2_score'], df['player1_score_string'])
     print(df['player1_score_string'])
-    df['player2_score_string'] = df['player2_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] < df['player2_score'], df['player2_score_string'])
+    df['player2_score_string'] = df['player2_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] < df['player2_score'])
     #df['player2_score_string'] = df['player2_score'].where(df['player1_score'] < df['player2_score'])
     df['player2_score_string']
     df['player2_score_string'] = df['player2_score'].astype(str).where(df['player1_score'] > df['player2_score'], df['player2_score_string'])
