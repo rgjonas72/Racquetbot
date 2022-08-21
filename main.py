@@ -575,7 +575,7 @@ async def get_ladder(season):
     #df = pd.read_sql(f'select player_name, elo, wins, losses from `{season}` order by elo desc', engine)
     df = pd.read_sql(f'select row_number() over (order by elo desc, wins desc, losses asc) as rank, player_name, elo, wins, losses from `{season}`', engine)
     df.columns = ['Rank', 'Name', 'Elo', 'W', 'L']
-
+    df['Rank'] = df['Rank'].astype(str) + '.'
     user = await client.fetch_user("1008939447439609907")
     cols = df.columns
     ar = df.to_numpy()
