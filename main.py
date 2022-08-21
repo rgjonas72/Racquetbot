@@ -430,8 +430,9 @@ async def get_history(id1, id2=None):
 
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
 
-    
+
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
+    df['Date'] = pd.to_datetime(df.Date, format='%m/%d')
     df['Date'] = df['Date'].dt.strftime('%m/%d')
 
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
