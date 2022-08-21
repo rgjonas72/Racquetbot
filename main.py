@@ -384,11 +384,7 @@ async def get_history(id1, id2=None):
 
         title = f'History for {id1_name}'
         user = await client.fetch_user(id1)
-        print(df)
-        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
-        #df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = pd.np.select(df['player2_id'] == id1, df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].values, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
 
-        print(df)
 
     else:
         df = pd.read_sql(f"select player1_id, player1_name, player2_id, player2_name, winner_id, player1_score, player2_score, game_date from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1})) order by game_date desc limit 10", engine)
@@ -396,30 +392,19 @@ async def get_history(id1, id2=None):
         title = f'History between {id1_name} and {id2_name}'
         user = await client.fetch_user("1008939447439609907")
 
-        '''
-        df_id1_player1_column = df.loc[df['player1_id'] == id1]
-        df_id1_player2_column = df.loc[df['player2_id'] == id1]
-        df_id2_player1_column = df.loc[df['player1_id'] == id2]
-        df_id1_player2_column = df.loc[df['player1_id'] == id2]
 
-        df_id1_player2_column[] = df_id1_player2_column[['R','L']]
-        
-        '''
-
-        df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1)
-        #df[['player1_score', 'player2_score']] = df[['player2_score', 'player1_score'].where(df['player2'] == id1)]
-
-
+    df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
     df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
-    name_max_length = str(df["Player 1"].str.len().max() + 1)
+    name_max_length_p1 = str(df["Player 1"].str.len().max() + 1)
+    name_max_length_p2 = str(df["Player 2"].str.len().max() + 1)
 
     cols = df_final.columns
     ar = df_final.to_numpy()
 
-    out = ['{: >{x}} {: ^8} {: <{x}} {: <10}'.format(*cols, x=name_max_length)]
+    out = ['{: >{p1_len}} {: ^8} {: <{p2_len}} {: <10}'.format(*cols, p1_len=name_max_length_p1, p2_len=name_max_length_p2)]
     if len(df_final.index) == 0:
         out = out[0]
         embed = discord.Embed(color=0x70ac64, title=title, description=f"```{out}```")
@@ -427,7 +412,7 @@ async def get_history(id1, id2=None):
         return embed
 
     for row in ar:
-        out.append('{: >{x}} {: ^8} {: <{x}} {: <10}'.format(*row, x=name_max_length))
+        out.append('{: >{p1_len}} {: ^8} {: <{p2_len}} {: <10}'.format(*row, p1_len=name_max_length_1, p2_len=name_max_length_p2))
     header, data = '\n'.join(out).split('\n', 1)
 
     embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
