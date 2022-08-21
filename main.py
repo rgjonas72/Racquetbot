@@ -394,18 +394,13 @@ async def get_history(id1, id2=None):
 
 
     df[['player1_name', 'player2_name', 'player1_score', 'player2_score']] = df[['player2_name', 'player1_name', 'player2_score', 'player1_score']].where(df['player2_id'] == id1, df[['player1_name', 'player2_name', 'player1_score', 'player2_score']].values)
-    df['player1_score_string'] = df['player1_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] > df['player2_score'])
-    #df['player1_score_string'] = df['player1_score'].where(df['player1_score'] > df['player2_score'])
-    print(df['player1_score_string'])
-    df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] < df['player2_score'], df['player1_score_string'])
-    print(df['player1_score_string'])
-    df['player2_score_string'] = df['player2_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] < df['player2_score'])
-    #df['player2_score_string'] = df['player2_score'].where(df['player1_score'] < df['player2_score'])
-    df['player2_score_string']
-    df['player2_score_string'] = df['player2_score'].astype(str).where(df['player1_score'] > df['player2_score'], df['player2_score_string'])
-    df['player2_score_string']
-    df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score_old', 'Player 2 Score_old', 'Date', 'Player 1 Score', 'Player 2 Score']
+    #df['player1_score_string'] = df['player1_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] > df['player2_score'])
+    #df['player1_score_string'] = df['player1_score'].astype(str).where(df['player1_score'] < df['player2_score'], df['player1_score_string'])
+    #df['player2_score_string'] = df['player2_score'].astype(str).apply(lambda x: "{}{}{}".format('**', x, '**')).where(df['player1_score'] < df['player2_score'])
+    #df['player2_score_string'] = df['player2_score'].astype(str).where(df['player1_score'] > df['player2_score'], df['player2_score_string'])
+    #df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score_old', 'Player 2 Score_old', 'Date', 'Player 1 Score', 'Player 2 Score']
 
+    df.columns = ['Player 1 ID', 'Player 1', 'Player 2 ID', 'Player 2', 'Winner ID', 'Player 1 Score', 'Player 2 Score', 'Date']
     df['Score'] = df['Player 1 Score'].astype(str) + ' - ' + df['Player 2 Score'].astype(str)
     df['Date'] = df['Date'].dt.strftime('%m/%d/%Y')
     df_final = df[['Player 1', 'Score', 'Player 2', 'Date']]
@@ -428,9 +423,7 @@ async def get_history(id1, id2=None):
         out.append('{: ^{p1_len}} {: ^8} {: ^{p2_len}} {: ^10}'.format(*row, p1_len=name_max_length_p1, p2_len=name_max_length_p2))
     header, data = '\n'.join(out).split('\n', 1)
 
-    #embed = discord.Embed(color=0x70ac64, description=f"```{header}``` ```\n{data}```")
-    embed = discord.Embed(color=0x70ac64)
-    embed.add_field(name='Test', value=f"```{header}``` ```\n{data}```")
+    embed = discord.Embed(color=0x70ac64, description=f"```yaml\n{header}``` ```\n{data}```")
     embed.set_author(name=user.display_name, icon_url=user.avatar_url)
 
     return embed
