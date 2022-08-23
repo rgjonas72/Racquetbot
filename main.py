@@ -470,8 +470,14 @@ async def get_history(id1, id2=None):
 async def get_versus_stats_all(id1, id2):
     df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", engine)
     counts = df['winner_id'].value_counts()
-    id1_wins = counts[id1]
-    id2_wins = counts[id2]
+    if id1 in counts:
+        id1_wins = counts[id1]
+    else:
+        id1_wins = 0
+    if id2 in counts:
+        id2_wins = counts[id2]
+    else:
+        id2_wins = 0
 
     df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id'] == id1)]
     df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id'] == id2)]
