@@ -335,7 +335,7 @@ async def add_high_tier_player(id):
     name = await get_player_name(id)
     cursor.execute('insert into HighTierPlayers values (%s, %s)', (name, id,))
     ### Give them +600 elo here in current season?
-    elo_boost = 600
+    elo_boost = 700
     season = await get_current_ranked_season()
     cursor.execute('update `' + season + '` set elo=elo+%s where discord_id=%s', (elo_boost, id,))
     cursor.close()
@@ -697,7 +697,7 @@ async def on_message(message):
             await message.channel.send('Game id does not exist.')
         else:
             await message.channel.send(embed=embed)
-            channel = client.get_channel(1010336645595267133)
+            channel = client.get_channel(1011020246867521639)
             await channel.send(embed=embed)
 
     if message.content.lower().startswith('.ranked'):
@@ -728,7 +728,7 @@ async def on_message(message):
             await message.channel.send('Game id does not exist.')
         else:
             await message.channel.send(embed=embed)
-            channel = client.get_channel(1010336645595267133)
+            channel = client.get_channel(1011020246867521639)
             await channel.send(embed=embed)
 
     if message.content.lower().startswith('.stats'):
