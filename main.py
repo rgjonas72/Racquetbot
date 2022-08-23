@@ -378,6 +378,7 @@ async def get_versus_stats(id1, id2):
     season = await get_current_ranked_season()
     df = pd.read_sql(f"select player1_id, player2_id, winner_id, player1_score, player2_score from game_history where season='{season}' and invalid=0 and ((player1_id={id1} and player2_id={id2}) or (player1_id={id2} and player2_id={id1}))", engine)
 
+    print(df)
     counts = df['winner_id'].value_counts()
     print(counts)
     print(counts.loc[id1])
