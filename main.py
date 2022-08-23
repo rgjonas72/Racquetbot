@@ -387,7 +387,7 @@ async def get_versus_stats(id1, id2):
         id2_wins = counts[id2]
     else:
         id2_wins = 0
-    
+
     if id1_wins == 0 and id2_wins == 0:
         return None
 
@@ -481,7 +481,7 @@ async def get_versus_stats_all(id1, id2):
         id2_wins = counts[id2]
     else:
         id2_wins = 0
-    
+
     if id1_wins == 0 and id2_wins == 0:
         return None
 
@@ -756,7 +756,8 @@ async def on_message(message):
             player1 = str(mentions[0].id)
             player2 = str(mentions[1].id)
             embed = await get_versus_stats(player1, player2)
-            await message.channel.send(embed=embed)
+            if embed is None: await message.channel.send('No games played against each other.')
+            else: await message.channel.send(embed=embed)
             return
         elif len(mentions) == 1:
             id = str(mentions[0].id)
@@ -776,7 +777,8 @@ async def on_message(message):
             player1 = str(mentions[0].id)
             player2 = str(mentions[1].id)
             embed = await get_versus_stats_all(player1, player2)
-            await message.channel.send(embed=embed)
+            if embed is None: await message.channel.send('No games played against each other.')
+            else: await message.channel.send(embed=embed)
             return
         elif len(mentions) == 1:
             id = str(mentions[0].id)
