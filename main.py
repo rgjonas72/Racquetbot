@@ -387,6 +387,9 @@ async def get_versus_stats(id1, id2):
         id2_wins = counts[id2]
     else:
         id2_wins = 0
+    
+    if id1_wins == 0 and id2_wins == 0:
+        return None
 
     df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id'] == id1)]
     df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id'] == id2)]
@@ -478,6 +481,9 @@ async def get_versus_stats_all(id1, id2):
         id2_wins = counts[id2]
     else:
         id2_wins = 0
+    
+    if id1_wins == 0 and id2_wins == 0:
+        return None
 
     df_id1_wins_p1 = df.loc[(df['winner_id'] == id1) & (df['player1_id'] == id1)]
     df_id2_wins_p1 = df.loc[(df['winner_id'] == id2) & (df['player1_id'] == id2)]
@@ -757,7 +763,10 @@ async def on_message(message):
         else:
             id = str(message.author.id)
         embed = await get_stats(id)
-        await message.channel.send(embed=embed)
+        if embed is None:
+            await message.channel.send('No games played against each other.')
+        else:
+            await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.allstats'):
         mentions = message.mentions
@@ -774,7 +783,10 @@ async def on_message(message):
         else:
             id = str(message.author.id)
         embed = await get_stats_all(id)
-        await message.channel.send(embed=embed)
+        if embed is None:
+            await message.channel.send('No games played against each other.')
+        else:
+            await message.channel.send(embed=embed)
 
     if message.content.lower().startswith('.history'):
         mentions = message.mentions
