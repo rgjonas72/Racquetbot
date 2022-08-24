@@ -68,7 +68,7 @@ async def get_k_value(elo, ngames):
 # K is a constant.
 # d determines whether
 # Player A wins or Player B.
-async def EloRating(winner, loser, season, winner_score, loser_score, update=None):
+async def EloRating(winner, loser, season, winner_score, loser_score, update=None, recalc=False):
     mydb = await get_db()
     cursor = mydb.cursor()
     # Get elo for both players
@@ -86,8 +86,13 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     loser_k = await get_k_value(loser_elo, loser_games)
 
     # Calculate probability
-    winner_expected_outcome = winner_elo / (winner_elo + loser_elo)
-    loser_expected_outcome = loser_elo / (winner_elo + loser_elo)
+    #             R(1) = 10r(1)/400
+    #
+    #             R(2) = 10r(2)/400
+    winner_adjusted_elo = 10**winner_elo/400
+    loser_adjusted_elo = 10 **loser_elo / 400
+    winner_expected_outcome = winner_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
+    loser_expected_outcome = loser_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     # Calculate post game deltas and elos
     winner_delta = math.ceil(winner_k * (1 - winner_expected_outcome))
     winner_new_elo = winner_elo + winner_delta
@@ -100,6 +105,8 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     # Insert game into database
     cursor.execute('update `' + season + '` set elo=%s, wins=wins+1 where discord_id=%s', (winner_new_elo, winner,))
     cursor.execute('update `' + season + '` set elo=%s, losses=losses+1 where discord_id=%s', (loser_new_elo, loser,))
+
+    if recalc: return
 
     winner_name = await get_player_name(winner)
     loser_name = await get_player_name(loser)
@@ -139,22 +146,6 @@ async def output_game(game_id):
            embed.set_footer(text='❌ Game invalid')
     cursor.close()
     return embed
-
-'''
-async def output_game(game_id, winner, winner_elo, winner_delta, winner_new_elo, loser, loser_elo, loser_delta, loser_new_elo, winner_score, loser_score, season):
-    embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
-    winner_rank = await get_player_rank(winner, season)
-    loser_rank = await get_player_rank(loser, season)
-    embed.add_field(name=f"__Elo Changes__", value=f"<@{winner}> {winner_elo} --> {winner_new_elo} **(+{winner_delta})** | #{winner_rank}\n<@{loser}> {loser_elo} --> {loser_new_elo} **({loser_delta})** | #{loser_rank}", inline=False)
-
-    return embed
-'''
-
-'''
-async def output_game_unranked(game_id, winner, loser, winner_score, loser_score, season):
-    embed = discord.Embed(title=f"Racquetball game id #{game_id}", description=f'Score: <@{winner}> {winner_score}-{loser_score} <@{loser}>', color=0x70ac64)
-    return embed
-'''
 
 
 async def validate_game(game_id):
@@ -661,6 +652,29 @@ async def check_score(winner_score, loser_score):
 
     return None
 
+async def recalc_season(season):
+    db = await get_db()
+    cursor = db.cursor()
+
+    cursor.execute(f'select player1_id, player2_id, winner_id, player1_score, player2_score from `{season}` where invalid=0 order by game_date asc')
+    games = cursor.fetchall()
+    new_season = 'Testing Recalc'
+    for game in games:
+        player1, player2, winner, player1_score, player2_score = game
+        p1 = winner
+        if p1 != winner:
+            p2 = player1
+            p2_score = player1_score
+            p1_score = player2_score
+        else:
+            p2 = player2
+            p2_score = player2_score
+            p1_score = player1_score
+
+        input_win(p1, p2, season, p1_score, p2_score)
+
+    cursor.close()
+
 @client.event
 async def on_ready():
     print('Logged in as {0.user}'.format(client))
@@ -941,6 +955,11 @@ async def on_message(message):
                         value="Type .history to view your game history, or type .history and @ someone else to view theirs.\nCan also mention two users to view their history against each other.",
                         inline=True)
         embed.add_field(name=".ladder or .leaderboard", value="Type .ladder or .leaderboard to view the ladder.", inline=True)
+        await message.channel.send(embed=embed)
+
+    if message.content.lower().startswith('.recalc'):
+        season = await get_current_ranked_season()
+        await recalc_season(season)
         await message.channel.send(embed=embed)
 
 
