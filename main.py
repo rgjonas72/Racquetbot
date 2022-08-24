@@ -8,14 +8,7 @@ from sqlalchemy import create_engine
 import pymysql
 import datetime as dt
 
-'''
-mydb = mysql.connector.connect(
-    host = "localhost",
-    user = "racquetbot",
-    password = "racquet",
-    database = "racquetbot"
-)
-'''
+
 
 async def get_db():
     mydb = mysql.connector.connect(
@@ -26,8 +19,6 @@ async def get_db():
     mydb.autocommit = True
     return mydb
 
-
-
 engine = create_engine("mysql+pymysql://racquetbot:racquet@localhost/racquetbot?charset=utf8mb4")
 
 # Initiate discord client
@@ -37,7 +28,7 @@ client = discord.Client(intents=intents)
 
 async def get_k_value(elo, ngames):
     # K value gradation based on elo
-    k_valuea, k_valueb, k_valuec, k_valued = [60, 43, 35, 28]
+    k_valuea, k_valueb, k_valuec, k_valued = [65, 65, 54, 40]
 
     # elo thresholds
     k_thresholda, k_thresholdb = [1600, 1000]
@@ -68,7 +59,7 @@ async def get_k_value(elo, ngames):
 # K is a constant.
 # d determines whether
 # Player A wins or Player B.
-async def EloRating(winner, loser, season, winner_score, loser_score, update=None, recalc=False):
+async def EloRating(winner, loser, season, winner_score, loser_score, update=None):
     mydb = await get_db()
     cursor = mydb.cursor()
     # Get elo for both players
@@ -90,7 +81,7 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     #
     #             R(2) = 10r(2)/400
     winner_adjusted_elo = 10**winner_elo/400
-    loser_adjusted_elo = 10 **loser_elo / 400
+    loser_adjusted_elo = 10**loser_elo/400
     winner_expected_outcome = winner_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     loser_expected_outcome = loser_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     # Calculate post game deltas and elos
@@ -105,8 +96,6 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     # Insert game into database
     cursor.execute('update `' + season + '` set elo=%s, wins=wins+1 where discord_id=%s', (winner_new_elo, winner,))
     cursor.execute('update `' + season + '` set elo=%s, losses=losses+1 where discord_id=%s', (loser_new_elo, loser,))
-
-    if recalc: return
 
     winner_name = await get_player_name(winner)
     loser_name = await get_player_name(loser)
@@ -258,11 +247,11 @@ async def add_player_unranked(id, season):
 
 # Parameters: ID of winner and loser, and string of queue type
 # Queue type either 'Ranked' or 'Friendly'
-async def input_win(winner, loser, season, winner_score, loser_score):
+async def input_win(winner, loser, season, winner_score, loser_score, update=None):
     await check_player_status(winner, season);
     await check_player_status(loser, season);
 
-    embed = await EloRating(winner, loser, season, winner_score, loser_score)
+    embed = await EloRating(winner, loser, season, winner_score, loser_score, update)
 
     return embed
 
@@ -654,13 +643,13 @@ async def check_score(winner_score, loser_score):
 
 async def recalc_season(season):
     db = await get_db()
+    channel = client.get_channel(1011839887315583089)
     cursor = db.cursor()
-
-    cursor.execute(f'select player1_id, player2_id, winner_id, player1_score, player2_score from `{season}` where invalid=0 order by game_date asc')
+    cursor.execute(f'select gameid, player1_id, player2_id, winner_id, player1_score, player2_score from game_history where season=%s and invalid=0 order by game_date asc', (season,))
     games = cursor.fetchall()
-    new_season = 'Testing Recalc'
+    cursor.execute(f'truncate table `{season}`')
     for game in games:
-        player1, player2, winner, player1_score, player2_score = game
+        gameid, player1, player2, winner, player1_score, player2_score = list(game)
         p1 = winner
         if p1 != winner:
             p2 = player1
@@ -670,9 +659,8 @@ async def recalc_season(season):
             p2 = player2
             p2_score = player2_score
             p1_score = player1_score
-
-        input_win(p1, p2, season, p1_score, p2_score)
-
+        embed = await input_win(p1, p2, season, p1_score, p2_score, update=gameid)
+        await channel.send(embed=embed)
     cursor.close()
 
 @client.event
@@ -959,8 +947,9 @@ async def on_message(message):
 
     if message.content.lower().startswith('.recalc'):
         season = await get_current_ranked_season()
+        await message.channel.send('Recalculating.')
         await recalc_season(season)
-        await message.channel.send(embed=embed)
+        await message.channel.send('Games recalculated for current ranked season.')
 
 
 # client.run(os.environ['TOKEN'])
