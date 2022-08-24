@@ -80,8 +80,8 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     #             R(1) = 10r(1)/400
     #
     #             R(2) = 10r(2)/400
-    winner_adjusted_elo = 10**winner_elo/400
-    loser_adjusted_elo = 10**loser_elo/400
+    winner_adjusted_elo = 10**(winner_elo/400)
+    loser_adjusted_elo = 10**(loser_elo/400)
     winner_expected_outcome = winner_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     loser_expected_outcome = loser_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     # Calculate post game deltas and elos
