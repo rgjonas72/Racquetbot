@@ -7,7 +7,7 @@ import numpy as np
 from sqlalchemy import create_engine
 import pymysql
 import datetime as dt
-
+import scipy
 
 
 async def get_db():
@@ -25,9 +25,43 @@ engine = create_engine("mysql+pymysql://racquetbot:racquet@localhost/racquetbot?
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
+'''
+winprob <- function(elo1,
+                    elo2,
+                    normprob = TRUE,
+                    fac = NULL) {
+
+  if (normprob) {
+    # z score based on fixed SD=200 (see Elo 1978)
+    z_score <- (elo1 - elo2) / (200 * sqrt(2))
+    p_win <- pnorm(z_score)
+  } else {
+    if (is.null(fac)) {
+      p_win <- 1 - 1/(1 + 10 ^ ((elo1 - elo2) / 400))
+    } else {
+      p_win <- 1 / (1 + exp(fac * (elo2 - elo1)))
+      # Goffe's: p_win <- 1/(1 + exp(diff_f * (elo2 - elo1)))
+    }
+  }
+
+  return(p_win)
+}
+'''
+async def get_win_prob(elo1, elo2, normprob=True, fac=None):
+    if normprob:
+        z_score = (elo1 - elo2) / (200 * math.sqrt(2))
+        p_win = scipy.stats.norm.cdf(z_score)
+    else:
+        if fac is None:
+            p_win = 1 - 1 / (1 + 10 ** ((elo1 - elo2) / 400))
+        else:
+            p_win = 1 / (1 + math.exp(fac * (elo2 - elo1)))
+    return p_win
+
 
 async def get_k_value(elo, ngames):
     # K value gradation based on elo
+    #k_valuea, k_valueb, k_valuec, k_valued = [60, 43, 35, 28]
     k_valuea, k_valueb, k_valuec, k_valued = [65, 65, 54, 40]
 
     # elo thresholds
@@ -80,10 +114,15 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     #             R(1) = 10r(1)/400
     #
     #             R(2) = 10r(2)/400
-    winner_adjusted_elo = 10**(winner_elo/400)
-    loser_adjusted_elo = 10**(loser_elo/400)
+    #winner_adjusted_elo = 10**(winner_elo/400)
+    #loser_adjusted_elo = 10**(loser_elo/400)
+    winner_adjusted_elo = await get_win_prob(winner_elo, loser_elo)
+    loser_adjusted_elo = await get_win_prob(loser_elo, winner_elo)
+    print(winner_elo, loser_elo)
+    print(winner_adjusted_elo, loser_adjusted_elo)
     winner_expected_outcome = winner_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     loser_expected_outcome = loser_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
+    print(winner_expected_outcome, loser_expected_outcome)
     # Calculate post game deltas and elos
     winner_delta = math.ceil(winner_k * (1 - winner_expected_outcome))
     winner_new_elo = winner_elo + winner_delta
