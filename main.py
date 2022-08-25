@@ -698,7 +698,7 @@ async def recalc_season(season):
             p2 = player2
             p2_score = player2_score
             p1_score = player1_score
-        # embed = await input_win(p1, p2, season, p1_score, p2_score, update=gameid)
+        embed = await input_win(p1, p2, season, p1_score, p2_score, update=gameid)
         # await channel.send(embed=embed)
     cursor.close()
 
