@@ -682,7 +682,7 @@ async def check_score(winner_score, loser_score):
 
 async def recalc_season(season):
     db = await get_db()
-    channel = client.get_channel(1011839887315583089)
+    # channel = client.get_channel(1012172535678382080)
     cursor = db.cursor()
     cursor.execute(f'select gameid, player1_id, player2_id, winner_id, player1_score, player2_score from game_history where season=%s and invalid=0 order by game_date asc', (season,))
     games = cursor.fetchall()
@@ -698,8 +698,8 @@ async def recalc_season(season):
             p2 = player2
             p2_score = player2_score
             p1_score = player1_score
-        embed = await input_win(p1, p2, season, p1_score, p2_score, update=gameid)
-        await channel.send(embed=embed)
+        # embed = await input_win(p1, p2, season, p1_score, p2_score, update=gameid)
+        # await channel.send(embed=embed)
     cursor.close()
 
 @client.event
@@ -755,7 +755,7 @@ async def on_message(message):
             await message.channel.send('Game id does not exist.')
         else:
             await message.channel.send(embed=embed)
-            channel = client.get_channel(1011020246867521639)
+            channel = client.get_channel(1012172535678382080)
             await channel.send(embed=embed)
 
     if message.content.lower().startswith('.ranked'):
@@ -786,7 +786,7 @@ async def on_message(message):
             await message.channel.send('Game id does not exist.')
         else:
             await message.channel.send(embed=embed)
-            channel = client.get_channel(1011020246867521639)
+            channel = client.get_channel(1012172535678382080)
             await channel.send(embed=embed)
 
     if message.content.lower().startswith('.stats'):
