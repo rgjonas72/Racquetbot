@@ -47,7 +47,7 @@ winprob <- function(elo1,
   return(p_win)
 }
 '''
-async def get_win_prob(elo1, elo2, normprob=True, fac=None):
+async def get_win_prob(elo1, elo2, normprob=False, fac=.003):
     if normprob:
         z_score = (elo1 - elo2) / (200 * math.sqrt(2))
         p_win = scipy.stats.norm.cdf(z_score)
@@ -118,8 +118,7 @@ async def EloRating(winner, loser, season, winner_score, loser_score, update=Non
     #loser_adjusted_elo = 10**(loser_elo/400)
     winner_adjusted_elo = await get_win_prob(winner_elo, loser_elo)
     loser_adjusted_elo = await get_win_prob(loser_elo, winner_elo)
-    print(winner_elo, loser_elo)
-    print(winner_adjusted_elo, loser_adjusted_elo)
+
     winner_expected_outcome = winner_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     loser_expected_outcome = loser_adjusted_elo / (winner_adjusted_elo + loser_adjusted_elo)
     print(winner_expected_outcome, loser_expected_outcome)
