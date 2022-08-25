@@ -7,7 +7,7 @@ import numpy as np
 from sqlalchemy import create_engine
 import pymysql
 import datetime as dt
-import scipy
+import scipy.stats
 
 
 async def get_db():
